@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_notes"
+    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="48dp"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="ru.bmstu.iu6.simplenote.activities.NotesActivity"
+    tools:showIn="@layout/activity_notes">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_notes"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:listitem="@layout/item_note" />
+
+    <TextView
+        android:id="@+id/text_empty_placeholder"
+        android:drawableTop="@drawable/ic_note_add_black_48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No notes yet" />
+
+</LinearLayout>
