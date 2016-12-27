@@ -1,4 +1,4 @@
-package ru.bmstu.iu6.simplenote.database;
+package ru.bmstu.iu6.simplenote.data.database;
 
 import android.provider.BaseColumns;
 

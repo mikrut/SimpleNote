@@ -1,4 +1,4 @@
-package ru.bmstu.iu6.simplenote.database;
+package ru.bmstu.iu6.simplenote.data.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,6 +14,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
 
+import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
 import ru.bmstu.iu6.simplenote.models.INote;
 import ru.bmstu.iu6.simplenote.models.Note;
 
@@ -21,20 +22,27 @@ import ru.bmstu.iu6.simplenote.models.Note;
  * Created by Михаил on 25.12.2016.
  */
 
-public class NotesDAO {
+public class NotesDAO implements NotesDataSource {
     private NotesDBOpenHelper dbHelper;
     private SQLiteDatabase database;
 
-    public NotesDAO(Context context) {
-        dbHelper = new NotesDBOpenHelper(context);
-    }
+    private static NotesDAO INSTANCE;
+    private static final Object INSTANCE_SYNCHRONIZER = new Object();
 
-    public void open() throws SQLException {
+    private NotesDAO(@NonNull Context context) {
+        dbHelper = new NotesDBOpenHelper(context);
         database = dbHelper.getWritableDatabase();
     }
 
-    public void close() {
-        dbHelper.close();
+    public static NotesDAO getInstance(@NonNull Context context) {
+        if (INSTANCE == null) {
+            synchronized (INSTANCE_SYNCHRONIZER) {
+                if (INSTANCE == null) {
+                    INSTANCE = new NotesDAO(context);
+                }
+            }
+        }
+        return INSTANCE;
     }
 
     public long saveNote(@NonNull INote note) {
@@ -48,7 +56,7 @@ public class NotesDAO {
     }
 
     @NonNull
-    public List<Note> getNotes() {
+    public List<? extends INote> getNotes() {
         final String orderBy = NotesContract.NotesEntry.COLUMN_NAME_DATETIME + " DESC";
 
         Cursor cursor = database.query(

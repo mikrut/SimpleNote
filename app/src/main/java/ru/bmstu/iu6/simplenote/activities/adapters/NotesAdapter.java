@@ -1,8 +1,8 @@
-package ru.bmstu.iu6.simplenote.adapters;
+package ru.bmstu.iu6.simplenote.activities.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,10 +17,6 @@ import java.util.List;
 import java.util.Locale;
 
 import ru.bmstu.iu6.simplenote.R;
-import ru.bmstu.iu6.simplenote.activities.EditActivity;
-import ru.bmstu.iu6.simplenote.activities.NotesActivity;
-import ru.bmstu.iu6.simplenote.models.INote;
-import ru.bmstu.iu6.simplenote.models.Note;
 
 /**
  * Created by Михаил on 26.12.2016.
@@ -29,12 +25,16 @@ import ru.bmstu.iu6.simplenote.models.Note;
 public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> {
     @NonNull
     private Context context;
-    @NonNull
+    @Nullable
     private List<DecoratedNote> notes;
 
-    public NotesAdapter(@NonNull Context context, @NonNull List<DecoratedNote> notes) {
+    public NotesAdapter(@NonNull Context context) {
         this.context = context;
+    }
+
+    public void replaceNotes(@NonNull List<DecoratedNote> notes) {
         this.notes = notes;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -46,19 +46,19 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.initView(notes.get(position), position);
+        if (notes != null)
+            holder.initView(notes.get(position), position);
     }
 
     @Override
     public int getItemCount() {
-        return notes.size();
+        return (notes != null) ? notes.size() : 0;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
         private TextView dateTime;
         private TextView header;
 
-        private DecoratedNote note;
         private int position;
 
         ViewHolder(final View itemView) {
@@ -88,7 +88,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> 
             dateTime.setText(dateTimeToString(note.getDateTime()));
             header.setText(note.getText());
             itemView.setSelected(note.isSelected());
-            this.note = note;
             this.position = position;
         }
     }
