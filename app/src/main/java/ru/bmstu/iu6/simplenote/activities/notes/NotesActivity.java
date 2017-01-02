@@ -174,8 +174,6 @@ public class NotesActivity
             int id = item.getItemId();
 
             switch (id) {
-                case R.id.action_settings:
-                    return true;
                 case R.id.action_clear:
                     presenter.unSelectNotes();
                     return true;
