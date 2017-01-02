@@ -32,6 +32,7 @@
             android:focusableInTouchMode="true"
             android:textIsSelectable="true"
             android:inputType="textMultiLine"
+            android:hint="Text"
             tools:text="Very useful note" />
     </ScrollView>
 

@@ -1,5 +1,6 @@
 package ru.bmstu.iu6.simplenote.activities.noteedit;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -64,6 +65,14 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
     }
 
     @Override
+    public void share() {
+        String text = view.getNoteText().toString();
+        if (!text.equals("")) {
+            view.startShareActivity(text);
+        }
+    }
+
+    @Override
     public void onGetNotes(List<? extends INote> notes) {
         // Nothing
     }
@@ -76,8 +85,10 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
 
     @Override
     public void onSaveNoteResult(long result) {
-        if (nid == null)
+        if (nid == null) {
             nid = result != -1 ? (int) result : null;
+            view.showSaveMessage();
+        }
     }
 
     @Override

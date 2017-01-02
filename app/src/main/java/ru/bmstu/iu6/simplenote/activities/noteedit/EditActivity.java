@@ -179,6 +179,10 @@ public class EditActivity extends AppCompatActivity {
             switch (id) {
                 case R.id.action_edit:
                     presenter.toggleEditable();
+                    return true;
+                case R.id.action_share:
+                    presenter.share();
+                    return true;
                 default:
                     return true;
             }
@@ -228,6 +232,17 @@ public class EditActivity extends AppCompatActivity {
         public void showSaveMessage() {
             // TODO: use string resources
             Toast.makeText(context, "Note saved", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void startShareActivity(String text) {
+            Intent shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+            shareIntent.setType("text/plain");
+            // TODO: use string resources
+            Intent chooser = Intent.createChooser(shareIntent, "Share note to...");
+            startActivity(chooser);
         }
     }
 

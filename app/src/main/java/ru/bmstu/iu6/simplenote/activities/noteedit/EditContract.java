@@ -1,5 +1,6 @@
 package ru.bmstu.iu6.simplenote.activities.noteedit;
 
+import android.content.Intent;
 import android.text.Editable;
 
 import ru.bmstu.iu6.simplenote.mvp.BasePresenter;
@@ -19,11 +20,15 @@ interface EditContract {
         Editable getNoteText();
 
         void showSaveMessage();
+
+        void startShareActivity(String text);
     }
 
     interface Presenter extends BasePresenter {
 
         void toggleEditable();
+
+        void share();
 
     }
 }
