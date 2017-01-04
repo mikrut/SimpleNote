@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fitsSystemWindows="true"
-    tools:context="ru.bmstu.iu6.simplenote.activities.noteedit.EditActivity">
+    tools:context="ru.bmstu.iu6.simplenote.activities.save_file.SaveFileActivity">
+
     <LinearLayout
         android:id="@+id/activity_edit"
         android:orientation="vertical"
@@ -15,7 +16,6 @@
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/app_bar"
             android:theme="@style/AppTheme.AppBarOverlay">
 
             <android.support.v7.widget.Toolbar
@@ -27,19 +27,12 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <ScrollView
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_files"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <EditText
-                android:id="@+id/edit_note"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusableInTouchMode="true"
-                android:textIsSelectable="true"
-                android:inputType="textMultiLine"
-                android:hint="Text"
-                tools:text="Very useful note" />
-        </ScrollView>
+            android:layout_height="match_parent"
+            tools:listitem="@layout/item_file" />
 
     </LinearLayout>
+
 </android.support.design.widget.CoordinatorLayout>

@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.Set;
 
 import ru.bmstu.iu6.simplenote.R;
+import ru.bmstu.iu6.simplenote.activities.adapters.IOnItemClickListener;
 import ru.bmstu.iu6.simplenote.activities.noteedit.EditActivity;
 import ru.bmstu.iu6.simplenote.activities.adapters.DecoratedNote;
 import ru.bmstu.iu6.simplenote.activities.adapters.NotesAdapter;
-import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
 
@@ -118,7 +118,7 @@ public class NotesActivity
 
     private class NotesView
             implements NotesContract.View,
-            NotesAdapter.IOnItemClickListener {
+            IOnItemClickListener {
         private NotesContract.Presenter presenter;
 
         private RecyclerView notesRecycler;

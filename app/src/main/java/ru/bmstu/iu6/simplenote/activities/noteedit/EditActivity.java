@@ -28,6 +28,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import ru.bmstu.iu6.simplenote.R;
+import ru.bmstu.iu6.simplenote.activities.save_file.SaveFileActivity;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
 
@@ -183,6 +184,9 @@ public class EditActivity extends AppCompatActivity {
                 case R.id.action_share:
                     presenter.share();
                     return true;
+                case R.id.action_export_txt:
+                    presenter.saveAsTxt();
+                    return true;
                 default:
                     return true;
             }
@@ -232,6 +236,12 @@ public class EditActivity extends AppCompatActivity {
         public void showSaveMessage() {
             // TODO: use string resources
             Toast.makeText(context, "Note saved", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void showSaveActivity() {
+            Intent saveIntent = new Intent(EditActivity.this, SaveFileActivity.class);
+            startActivity(saveIntent);
         }
 
         @Override

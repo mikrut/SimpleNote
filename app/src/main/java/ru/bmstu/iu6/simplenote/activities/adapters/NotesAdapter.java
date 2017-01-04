@@ -98,11 +98,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> 
         this.onItemClickListener = onItemClickListener;
     }
 
-    public interface IOnItemClickListener {
-        void onLongClick(int position);
-        void onClick(int position);
-    }
-
     private static String dateTimeToString(Calendar dtime) {
         String timestring = "";
         Calendar now = GregorianCalendar.getInstance();

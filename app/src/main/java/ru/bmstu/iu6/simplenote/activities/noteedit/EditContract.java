@@ -22,6 +22,9 @@ interface EditContract {
         void showSaveMessage();
 
         void startShareActivity(String text);
+
+        void showSaveActivity();
+
     }
 
     interface Presenter extends BasePresenter {
@@ -29,6 +32,8 @@ interface EditContract {
         void toggleEditable();
 
         void share();
+
+        void saveAsTxt();
 
     }
 }

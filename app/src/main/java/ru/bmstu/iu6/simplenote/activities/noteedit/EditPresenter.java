@@ -73,6 +73,11 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
     }
 
     @Override
+    public void saveAsTxt() {
+        view.showSaveActivity();
+    }
+
+    @Override
     public void onGetNotes(List<? extends INote> notes) {
         // Nothing
     }
