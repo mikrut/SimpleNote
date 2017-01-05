@@ -25,6 +25,10 @@ interface EditContract {
 
         void showSaveActivity();
 
+        void rememberNid(int nid);
+
+        void showCantSaveEmpty();
+
     }
 
     interface Presenter extends BasePresenter {
@@ -34,6 +38,8 @@ interface EditContract {
         void share();
 
         void saveAsTxt();
+
+        void notifyServiceDisconnected();
 
     }
 }

@@ -38,12 +38,15 @@ public class EditActivity extends AppCompatActivity {
     public static final String EXTRA_NID =
             EditActivity.class.getCanonicalName() + ".EXTRA_NID";
 
+    public static final String SAVED_NID =
+            EditActivity.class.getCanonicalName() + ".SAVED_NID";
+
     private static final boolean DEFAULT_EDITABLE = false;
+
+    private EditPresenter presenter;
 
     private Integer nid;
     private boolean editable;
-
-    private EditPresenter presenter;
 
     private boolean bound = false;
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -68,12 +71,7 @@ public class EditActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
 
-        Intent intent = getIntent();
-        nid = intent.hasExtra(EXTRA_NID) ? intent.getIntExtra(EXTRA_NID, -1) : null;
-        editable = intent.getBooleanExtra(EXTRA_EDITABLE, DEFAULT_EDITABLE);
-
         view.onCreate(savedInstanceState);
-        view.enableCreationMode(editable && nid == null);
     }
 
     @Override
@@ -96,6 +94,13 @@ public class EditActivity extends AppCompatActivity {
     protected void onPause() {
         presenter.onFinish();
         super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (nid != null)
+            outState.putInt(SAVED_NID, nid);
     }
 
     @Override
@@ -157,6 +162,15 @@ public class EditActivity extends AppCompatActivity {
                     onBackPressed();
                 }
             });
+
+            Intent intent = getIntent();
+            nid = intent.hasExtra(EXTRA_NID) ? intent.getIntExtra(EXTRA_NID, -1) : null;
+            editable = intent.getBooleanExtra(EXTRA_EDITABLE, DEFAULT_EDITABLE);
+
+            if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_NID))
+                nid = savedInstanceState.getInt(SAVED_NID);
+
+            view.enableCreationMode(editable && nid == null);
         }
 
         public boolean onCreateOptionsMenu(Menu menu) {
@@ -200,6 +214,11 @@ public class EditActivity extends AppCompatActivity {
         }
 
         @Override
+        public void rememberNid(int nid) {
+            EditActivity.this.nid = nid;
+        }
+
+        @Override
         public void initNoteText(CharSequence text) {
             inEditMode = true;
             noteEdit.setText(text);
@@ -239,8 +258,15 @@ public class EditActivity extends AppCompatActivity {
         }
 
         @Override
+        public void showCantSaveEmpty() {
+            // TODO: use string resources
+            Toast.makeText(context, "Cant save empty note", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
         public void showSaveActivity() {
             Intent saveIntent = new Intent(EditActivity.this, SaveFileActivity.class);
+            saveIntent.putExtra(SaveFileActivity.EXTRA_NID, nid);
             startActivity(saveIntent);
         }
 

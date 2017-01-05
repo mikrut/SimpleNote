@@ -23,6 +23,8 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
 
     private boolean editable;
 
+    private boolean shouldOpenSaveActivity = false;
+
     EditPresenter(@NonNull EditContract.View editView, @NonNull Handler handler,
                   @NonNull NotesRepository repository, @Nullable Integer nid,
                   boolean editable) {
@@ -35,7 +37,8 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
         view.setEditMode(editable);
     }
 
-    void notifyServiceDisconnected() {
+    @Override
+    public void notifyServiceDisconnected() {
         repository.removeContentObserver();
         repository = null;
     }
@@ -74,7 +77,14 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
 
     @Override
     public void saveAsTxt() {
-        view.showSaveActivity();
+        if (nid != null) {
+            view.showSaveActivity();
+        } else if (view.getNoteText().length() > 0) {
+            shouldOpenSaveActivity = true;
+            saveNote();
+        } else {
+            view.showCantSaveEmpty();
+        }
     }
 
     @Override
@@ -93,7 +103,12 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
         if (nid == null) {
             nid = result != -1 ? (int) result : null;
             view.showSaveMessage();
+            view.rememberNid(nid);
+
+            if (shouldOpenSaveActivity)
+                view.showSaveActivity();
         }
+        shouldOpenSaveActivity = false;
     }
 
     @Override

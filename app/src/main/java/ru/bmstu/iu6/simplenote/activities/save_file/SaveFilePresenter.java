@@ -9,13 +9,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
+import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.models.ArbitrarilyNamedFile;
 
 /**
  * Created by Михаил on 04.01.2017.
  */
 
-class SaveFilePresenter implements SaveFileContract.Presenter {
+class SaveFilePresenter implements SaveFileContract.Presenter, SaveFileTask.SaveFileListener {
     private static final String ROOT = "/";
     private static final String UP = "../";
 
@@ -25,7 +27,12 @@ class SaveFilePresenter implements SaveFileContract.Presenter {
     private File currentDir;
     private ArrayList<File> files;
 
-    SaveFilePresenter(@NonNull SaveFileContract.View view, @NonNull File startDir) {
+    private final int nid;
+    private SaveFileTask task;
+
+    SaveFilePresenter(int nid, @NonNull SaveFileContract.View view,
+                      @NonNull File startDir) {
+        this.nid = nid;
         mView = view;
         view.setPresenter(this);
         String startPath = ROOT;
@@ -52,6 +59,7 @@ class SaveFilePresenter implements SaveFileContract.Presenter {
         if (files == null) {
             files = new ArrayList<>(capacity);
         } else {
+            files.clear();
             files.ensureCapacity(capacity);
         }
 
@@ -71,6 +79,40 @@ class SaveFilePresenter implements SaveFileContract.Presenter {
         Collections.sort(files);
 
         mView.displayFilesList(files);
+    }
+
+    @Override
+    public void saveFile(@NonNull String filename, @NonNull NotesDataSource db) {
+        if (task == null) {
+            try {
+                filename = currentDir.getCanonicalPath() + File.separator + filename;
+                task = new SaveFileTask(db);
+                task.setListener(this);
+                task.execute(String.valueOf(nid), filename);
+            } catch (IOException e) {
+                e.printStackTrace();
+                // TODO: use string resources
+                mView.displayFilenameErrorMessage("Error saving file");
+            }
+        }
+    }
+
+    @Override
+    public void onFileSaved(boolean success) {
+        task = null;
+        if (success) {
+            mView.stopExecution();
+        } else {
+            // TODO: use string resources
+            mView.displayFilenameErrorMessage("Error saving file");
+        }
+    }
+
+    @Override
+    public void onDestroyUI() {
+        if (task != null)
+            task.setListener(null);
+        task = null;
     }
 
     @Override
