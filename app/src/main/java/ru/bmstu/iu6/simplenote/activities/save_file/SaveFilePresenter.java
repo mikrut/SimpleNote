@@ -98,6 +98,21 @@ class SaveFilePresenter implements SaveFileContract.Presenter, SaveFileTask.Save
     }
 
     @Override
+    public void back() {
+        try {
+            if (!currentDir.getCanonicalPath().equals(rootDir)) {
+                currentDir = currentDir.getParentFile();
+                updateFilesList();
+            } else {
+                mView.stopExecution();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            mView.stopExecution();
+        }
+    }
+
+    @Override
     public void onFileSaved(boolean success) {
         task = null;
         if (success) {

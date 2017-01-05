@@ -86,7 +86,7 @@ public class SaveFileActivity
 
                 final int MAX_FILENAME_LENGTH = 20;
 
-                final String fileNameRegex = "^\\w[\\w,\\s]*\\.?\\w*";
+                final String fileNameRegex = "^\\w[\\w,\\s]*\\.?[\\w]*[\\s]*";
                 Pattern p = Pattern.compile(fileNameRegex);
                 Matcher m = p.matcher(result);
                 return ((m.matches() && result.length() <= MAX_FILENAME_LENGTH)
@@ -137,9 +137,16 @@ public class SaveFileActivity
     }
 
     @Override
+    public void onBackPressed() {
+        if (presenter != null)
+            presenter.back();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
-        presenter.onDestroyUI();
+        if (presenter != null)
+            presenter.onDestroyUI();
     }
 
     @Override

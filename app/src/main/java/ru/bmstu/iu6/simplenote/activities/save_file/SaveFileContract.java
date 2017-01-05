@@ -27,6 +27,8 @@ public interface SaveFileContract {
 
         void saveFile(@NonNull String filename, @NonNull NotesDataSource db);
 
+        void back();
+
         void onDestroyUI();
     }
 }
