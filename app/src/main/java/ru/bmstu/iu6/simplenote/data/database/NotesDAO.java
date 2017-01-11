@@ -3,6 +3,7 @@ package ru.bmstu.iu6.simplenote.data.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
@@ -16,7 +17,12 @@ import java.util.Set;
 
 import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
 import ru.bmstu.iu6.simplenote.models.INote;
+import ru.bmstu.iu6.simplenote.models.ISearchNote;
 import ru.bmstu.iu6.simplenote.models.Note;
+import ru.bmstu.iu6.simplenote.models.SearchNote;
+
+import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
+import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
 
 /**
  * Created by Михаил on 25.12.2016.
@@ -46,13 +52,64 @@ public class NotesDAO implements NotesDataSource {
     }
 
     public long saveNote(@NonNull INote note) {
+        // TODO: consider using transaction
+
         ContentValues values = getContentValues(note);
-        return database.insertWithOnConflict(
+        long res = database.insertWithOnConflict(
                 NotesContract.NotesEntry.TABLE_NAME,
                 null,
                 values,
                 SQLiteDatabase.CONFLICT_REPLACE
         );
+
+        ContentValues ftsValues = new ContentValues();
+        ftsValues.put(NotesContract.NotesEntry.COLUMN_NAME_TEXT, escapeHtml4(note.getText()));
+        ftsValues.put("docid", res);
+        database.insertWithOnConflict("fts_" + NotesContract.NotesEntry.TABLE_NAME,
+                null, ftsValues, SQLiteDatabase.CONFLICT_REPLACE);
+
+        return res;
+    }
+
+    private static String selectionForProjection(String table, String[] projection) {
+        StringBuilder queryBuilder = new StringBuilder();
+        for (int i = 0; i < projection.length; i++) {
+            queryBuilder.append(table + "." + projection[i]);
+            if (i != projection.length - 1)
+                queryBuilder.append(", ");
+        }
+        return queryBuilder.toString();
+    }
+
+    @NonNull
+    public List<? extends ISearchNote> getNotes(@NonNull String queryString) {
+        final String[] selectionArgs = { queryString };
+        final String[] ftsQuasiProjection = {"docid", "snippet"};
+        // TODO: probably should consider this: { queryString + "*", "%" + queryString + "%" }
+
+        final String selectionNotes = selectionForProjection(NotesContract.NotesEntry.TABLE_NAME,
+                NotesContract.NOTE_PROJECTION);
+        final String selectionFts = selectionForProjection("fts", ftsQuasiProjection);
+
+        Cursor cursor = database.rawQuery(
+                "SELECT " + selectionNotes + ", " + selectionFts + " FROM " +
+                "(" +
+                    "SELECT docid, snippet(fts_" + NotesContract.NotesEntry.TABLE_NAME + ", \'<b>\', \'</b>\', \'...\', -1, -4) AS snippet " +
+                    "FROM fts_" + NotesContract.NotesEntry.TABLE_NAME +
+                    " WHERE fts_" + NotesContract.NotesEntry.TABLE_NAME + " MATCH ?" +
+                ") AS fts LEFT JOIN " + NotesContract.NotesEntry.TABLE_NAME +
+                " ON " + "fts.docid = " + NotesContract.NotesEntry.TABLE_NAME + "._id", selectionArgs);
+
+        List<ISearchNote> notes = new ArrayList<>(cursor.getCount());
+
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            Note note = createNote(cursor);
+            SearchNote searchNote = new SearchNote(note, cursor.getString(NotesContract.NOTE_PROJECTION.length + 1));
+            notes.add(searchNote);
+        }
+
+        cursor.close();
+        return notes;
     }
 
     @NonNull
@@ -142,5 +199,4 @@ public class NotesDAO implements NotesDataSource {
         return notes;
     }
 
-    // TODO: methods
 }

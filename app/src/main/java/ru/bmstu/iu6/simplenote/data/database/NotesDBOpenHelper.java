@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 
 class NotesDBOpenHelper extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "Notes.db";
 
     NotesDBOpenHelper(Context context) {
@@ -19,6 +19,7 @@ class NotesDBOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(NotesContract.CREATE_TABLE);
+        sqLiteDatabase.execSQL(NotesContract.CREATE_FTS_TABLE);
     }
 
     @Override
@@ -29,6 +30,7 @@ class NotesDBOpenHelper extends SQLiteOpenHelper {
 
     private void dropDatabase(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(NotesContract.DROP_TABLE);
+        sqLiteDatabase.execSQL(NotesContract.DROP_FTS_TABLE);
     }
 
     @Override

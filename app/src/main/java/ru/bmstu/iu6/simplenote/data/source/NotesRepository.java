@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import ru.bmstu.iu6.simplenote.models.INote;
+import ru.bmstu.iu6.simplenote.models.ISearchNote;
 
 /**
  * Created by Михаил on 27.12.2016.
@@ -52,6 +53,10 @@ public class NotesRepository
         service.getNote(nid, this);
     }
 
+    public void getNotes(@NonNull String query) {
+        service.getNotes(query, this);
+    }
+
     @Override
     public void onGetNotes(final List<? extends INote> notes) {
         if (observer != null) {
@@ -60,6 +65,20 @@ public class NotesRepository
                 public void run() {
                     if (observer != null) {
                         observer.onGetNotes(notes);
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onFindNotesResult(final List<? extends ISearchNote> notes) {
+        if (observer != null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (observer != null) {
+                        observer.onFindNotesResult(notes);
                     }
                 }
             });

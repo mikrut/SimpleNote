@@ -15,9 +15,15 @@ class NotesContract {
                 NotesEntry.COLUMN_NAME_TEXT + " TEXT NOT NULL" + COMMA_SEP +
                 NotesEntry.COLUMN_NAME_DATETIME + " INTEGER NOT NULL" +
             ")";
+    static final String CREATE_FTS_TABLE = "" +
+            "CREATE VIRTUAL TABLE fts_" + NotesEntry.TABLE_NAME +
+            " USING fts4 (content=\'" + NotesEntry.TABLE_NAME + "\', " +
+            NotesEntry.COLUMN_NAME_TEXT + ")";
 
     static final String DROP_TABLE =
             "DROP TABLE IF EXISTS " + NotesEntry.TABLE_NAME;
+    static final String DROP_FTS_TABLE =
+            "DROP TABLE IF EXISTS fts_" + NotesEntry.TABLE_NAME;
 
     static final String[] NOTE_PROJECTION = {
       NotesEntry.COLUMN_NAME_NID,

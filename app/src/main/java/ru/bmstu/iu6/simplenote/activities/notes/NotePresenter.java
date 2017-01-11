@@ -15,6 +15,7 @@ import ru.bmstu.iu6.simplenote.activities.adapters.DecoratedNote;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
 import ru.bmstu.iu6.simplenote.models.INote;
+import ru.bmstu.iu6.simplenote.models.ISearchNote;
 
 /**
  * Created by Михаил on 27.12.2016.
@@ -29,6 +30,7 @@ class NotePresenter
 
     private int selectedCounter = 0;
     private List<DecoratedNote> notes = new ArrayList<>();
+    private boolean inSearchState = false;
 
     private Set<Integer> selectedNotes;
 
@@ -162,5 +164,30 @@ class NotePresenter
     public void onDeleteFinish() {
         selectedCounter = 0;
         notesView.showSelectedCount(selectedCounter, null);
+    }
+
+    @Override
+    public void onFindNotesResult(List<? extends ISearchNote> searchNotes) {
+        if (inSearchState) {
+            if (selectedNotes != null) {
+                selectedCounter = 0;
+                notesView.showSelectedCount(selectedCounter, null);
+                selectedNotes = null;
+            }
+
+            onGetNotes(searchNotes);
+        }
+    }
+
+    @Override
+    public void searchNotes(String searchString) {
+        inSearchState = true;
+        repository.getNotes(searchString);
+    }
+
+    @Override
+    public void finishSearch() {
+        inSearchState = false;
+        repository.getNotes();
     }
 }

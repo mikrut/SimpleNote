@@ -42,6 +42,9 @@ public class SaveFileActivity
         implements IOnItemClickListener, SaveFileContract.View {
     public static final String EXTRA_NID =
             SaveFileActivity.class.getCanonicalName() + ".EXTRA_NID";
+    public static final String SAVED_FILENAME =
+            SaveFileActivity.class.getCanonicalName() + ".SAVED_FILENAME";
+
     private static final int REQUEST_WRITE_STORAGE = 112;
 
     private FilesAdapter filesAdapter;
@@ -195,5 +198,17 @@ public class SaveFileActivity
     public void onClick(int position) {
         if (presenter != null)
             presenter.onPositionClick(position);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(SAVED_FILENAME, fileName.getText().toString());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        fileName.setText(savedInstanceState.getString(SAVED_FILENAME));
     }
 }

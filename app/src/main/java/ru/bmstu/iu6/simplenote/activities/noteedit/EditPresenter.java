@@ -11,6 +11,7 @@ import java.util.List;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
 import ru.bmstu.iu6.simplenote.models.INote;
+import ru.bmstu.iu6.simplenote.models.ISearchNote;
 import ru.bmstu.iu6.simplenote.models.Note;
 
 /**
@@ -89,6 +90,11 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
 
     @Override
     public void onGetNotes(List<? extends INote> notes) {
+        // Nothing
+    }
+
+    @Override
+    public void onFindNotesResult(List<? extends ISearchNote> notes) {
         // Nothing
     }
 

@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.models.INote;
+import ru.bmstu.iu6.simplenote.models.ISearchNote;
 
 /**
  * Created by Михаил on 27.12.2016.
@@ -36,6 +37,7 @@ public class NotesRepositoryService extends Service {
         void onGetNote(INote note);
         void onSaveNoteResult(long result);
         void onDeleteFinish();
+        void onFindNotesResult(List<? extends ISearchNote> notes);
     }
 
     @Nullable
@@ -114,6 +116,21 @@ public class NotesRepositoryService extends Service {
             @Override
             public void run() {
                 getNoteAsync(nid, observer);
+            }
+        });
+    }
+
+    private void getNotesAsync(@NonNull String query, NotesRepositoryObserver observer) {
+        List<? extends ISearchNote> notes = notesDataSource.getNotes(query);
+        if (observer != null)
+            observer.onFindNotesResult(notes);
+    }
+
+    public void getNotes(@NonNull final String query, final NotesRepositoryObserver observer) {
+        repositoryThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                getNotesAsync(query, observer);
             }
         });
     }

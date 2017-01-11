@@ -1,5 +1,6 @@
 package ru.bmstu.iu6.simplenote.activities.notes;
 
+import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -13,14 +14,17 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.io.Serializable;
@@ -34,6 +38,7 @@ import ru.bmstu.iu6.simplenote.activities.adapters.DecoratedNote;
 import ru.bmstu.iu6.simplenote.activities.adapters.NotesAdapter;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
+import ru.bmstu.iu6.simplenote.models.ISearchNote;
 
 public class NotesActivity
         extends AppCompatActivity {
@@ -125,6 +130,8 @@ public class NotesActivity
         private NotesAdapter adapter;
         private TextView emptyPlaceholder;
 
+        private SearchView searchView;
+
         private boolean selectedMenuShown = false;
 
         private final Context context = NotesActivity.this;
@@ -157,7 +164,57 @@ public class NotesActivity
         public boolean onCreateOptionsMenu(Menu menu) {
             // Inflate the menu; this adds items to the action bar if it is present.
             getMenuInflater().inflate(R.menu.menu_notes, menu);
+            initSearchView(menu);
+
             return true;
+        }
+
+        private void initSearchView(Menu menu){
+            SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+            final MenuItem searchItem = menu.findItem(R.id.action_search);
+            searchView = (SearchView) searchItem.getActionView();
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setIconifiedByDefault(false);
+
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    presenter.searchNotes(query);
+                    return true;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    if (newText.equals("")) {
+                        presenter.loadNotes(false);
+                    } else {
+                        presenter.searchNotes(newText);
+                    }
+                    return true;
+                }
+            });
+
+            searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+                @Override
+                public boolean onClose() {
+                    return true;
+                }
+            });
+
+            MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+                @Override
+                public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                    // Nothing
+                    return true;
+                }
+
+                @Override
+                public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+                    Log.d("close", "close");
+                    presenter.finishSearch();
+                    return true;
+                }
+            });
         }
 
         public boolean onPrepareOptionsMenu(Menu menu) {
@@ -166,6 +223,7 @@ public class NotesActivity
                 getMenuInflater().inflate(R.menu.menu_notes_selected, menu);
             } else {
                 getMenuInflater().inflate(R.menu.menu_notes, menu);
+                initSearchView(menu);
             }
             return true;
         }

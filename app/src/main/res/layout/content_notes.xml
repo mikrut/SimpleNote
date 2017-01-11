@@ -6,8 +6,6 @@
     android:gravity="center"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="48dp"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="ru.bmstu.iu6.simplenote.activities.notes.NotesActivity"
@@ -17,6 +15,9 @@
         android:id="@+id/recycler_notes"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:paddingBottom="68dp"
+        android:paddingTop="10dp"
+        android:clipToPadding="false"
         android:visibility="gone"
         tools:listitem="@layout/item_note" />
 

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import ru.bmstu.iu6.simplenote.models.INote;
+import ru.bmstu.iu6.simplenote.models.ISearchNote;
 import ru.bmstu.iu6.simplenote.models.Note;
 
 /**
@@ -24,5 +25,8 @@ public interface NotesDataSource {
 
     @Nullable
     INote getNote(int nid);
+
+    @NonNull
+    List<? extends ISearchNote> getNotes(@NonNull String query);
 
 }
