@@ -2,6 +2,7 @@ package ru.bmstu.iu6.simplenote.models;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.Spanned;
 
 import java.util.Calendar;
 
@@ -11,16 +12,16 @@ import java.util.Calendar;
 
 public class SearchNote implements ISearchNote {
     private final @NonNull INote note;
-    private final @NonNull String snippet;
+    private final @NonNull Spanned snippet;
 
-    public SearchNote(@NonNull INote note, @NonNull String snippet) {
+    public SearchNote(@NonNull INote note, @NonNull Spanned snippet) {
         this.note = note;
         this.snippet = snippet;
     }
 
     @NonNull
     @Override
-    public String getSearchSnippet() {
+    public Spanned getSearchSnippet() {
         return snippet;
     }
 
@@ -40,5 +41,11 @@ public class SearchNote implements ISearchNote {
     @Override
     public Calendar getDateTime() {
         return note.getDateTime();
+    }
+
+    @NonNull
+    @Override
+    public CharSequence getDescription() {
+        return snippet;
     }
 }

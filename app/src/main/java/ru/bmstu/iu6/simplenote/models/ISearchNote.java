@@ -1,6 +1,7 @@
 package ru.bmstu.iu6.simplenote.models;
 
 import android.support.annotation.NonNull;
+import android.text.Spanned;
 
 /**
  * Created by Михаил on 10.01.2017.
@@ -8,5 +9,5 @@ import android.support.annotation.NonNull;
 
 public interface ISearchNote extends INote {
     @NonNull
-    String getSearchSnippet();
+    Spanned getSearchSnippet();
 }

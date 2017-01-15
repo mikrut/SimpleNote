@@ -1,8 +1,5 @@
 package ru.bmstu.iu6.simplenote.activities.notes;
 
-import android.app.LoaderManager;
-import android.content.Loader;
-import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 
@@ -11,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import ru.bmstu.iu6.simplenote.activities.adapters.DecoratedNote;
+import ru.bmstu.iu6.simplenote.models.DecoratedNote;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
 import ru.bmstu.iu6.simplenote.models.INote;

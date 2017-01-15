@@ -2,8 +2,7 @@ package ru.bmstu.iu6.simplenote.activities.notes;
 
 import java.util.List;
 
-import ru.bmstu.iu6.simplenote.activities.adapters.DecoratedNote;
-import ru.bmstu.iu6.simplenote.models.ISearchNote;
+import ru.bmstu.iu6.simplenote.models.DecoratedNote;
 import ru.bmstu.iu6.simplenote.mvp.BasePresenter;
 import ru.bmstu.iu6.simplenote.mvp.BaseView;
 

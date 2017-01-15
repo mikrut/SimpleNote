@@ -6,8 +6,11 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.Html;
+import android.text.Spanned;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -104,7 +107,14 @@ public class NotesDAO implements NotesDataSource {
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             Note note = createNote(cursor);
-            SearchNote searchNote = new SearchNote(note, cursor.getString(NotesContract.NOTE_PROJECTION.length + 1));
+            final String snippet = cursor.getString(NotesContract.NOTE_PROJECTION.length + 1);
+            final Spanned snip;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                snip = Html.fromHtml(snippet, Html.FROM_HTML_MODE_LEGACY);
+            } else {
+                snip = Html.fromHtml(snippet);
+            }
+            SearchNote searchNote = new SearchNote(note, snip);
             notes.add(searchNote);
         }
 

@@ -1,9 +1,8 @@
 package ru.bmstu.iu6.simplenote.models;
 
-import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.LinearLayoutCompat;
+import android.text.SpannedString;
 
 import java.util.Calendar;
 
@@ -49,5 +48,11 @@ public class Note implements INote {
     @Override
     public Calendar getDateTime() {
         return dateTime;
+    }
+
+    @NonNull
+    @Override
+    public CharSequence getDescription() {
+        return text;
     }
 }

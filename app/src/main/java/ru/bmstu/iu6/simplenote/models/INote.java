@@ -2,6 +2,7 @@ package ru.bmstu.iu6.simplenote.models;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.Spanned;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -16,6 +17,9 @@ public interface INote extends Serializable {
 
     @NonNull
     public String getText();
+
+    @NonNull
+    CharSequence getDescription();
 
     @NonNull
     public Calendar getDateTime();

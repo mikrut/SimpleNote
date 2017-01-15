@@ -24,7 +24,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.io.Serializable;
@@ -34,11 +33,10 @@ import java.util.Set;
 import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.adapters.IOnItemClickListener;
 import ru.bmstu.iu6.simplenote.activities.noteedit.EditActivity;
-import ru.bmstu.iu6.simplenote.activities.adapters.DecoratedNote;
+import ru.bmstu.iu6.simplenote.models.DecoratedNote;
 import ru.bmstu.iu6.simplenote.activities.adapters.NotesAdapter;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
-import ru.bmstu.iu6.simplenote.models.ISearchNote;
 
 public class NotesActivity
         extends AppCompatActivity {
