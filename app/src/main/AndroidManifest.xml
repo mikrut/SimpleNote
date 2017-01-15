@@ -31,9 +31,6 @@
             android:label="Save file"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <service
-            android:name=".data.source.NotesRepositoryService"
-            android:exported="false" />
     </application>
 
 </manifest>
