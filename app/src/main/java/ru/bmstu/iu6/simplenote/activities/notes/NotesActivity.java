@@ -142,12 +142,7 @@ public class NotesActivity
             setSupportActionBar(toolbar);
 
             FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    presenter.createNewNote();
-                }
-            });
+            fab.setOnClickListener((View view) -> presenter.createNewNote());
 
             notesRecycler = (RecyclerView) findViewById(R.id.recycler_notes);
 
@@ -194,12 +189,7 @@ public class NotesActivity
                 }
             });
 
-            searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-                @Override
-                public boolean onClose() {
-                    return true;
-                }
-            });
+            searchView.setOnCloseListener(() -> true);
 
             MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
                 @Override

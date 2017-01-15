@@ -73,21 +73,15 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.ViewHolder> 
             fileName = (TextView)  itemView.findViewById(R.id.text_file_name);
             fileMeta = (TextView)  itemView.findViewById(R.id.text_file_meta);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (onItemClickListener != null)
-                        onItemClickListener.onClick(position);
-                }
+            itemView.setOnClickListener(view -> {
+                if (onItemClickListener != null)
+                    onItemClickListener.onClick(position);
             });
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    if (onItemClickListener != null)
-                        onItemClickListener.onLongClick(position);
-                    return false;
-                }
+            itemView.setOnLongClickListener(view -> {
+                if (onItemClickListener != null)
+                    onItemClickListener.onLongClick(position);
+                return false;
             });
         }
 

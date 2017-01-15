@@ -67,12 +67,7 @@ public class NotesRepositoryService extends Service {
     }
 
     public void getNotes(final NotesRepositoryObserver observer) {
-        repositoryThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                getNotesAsync(observer);
-            }
-        });
+        repositoryThreadPool.execute(() -> getNotesAsync(observer));
     }
 
     private void saveNoteAsync(@NonNull INote note, NotesRepositoryObserver observer) {
@@ -82,12 +77,7 @@ public class NotesRepositoryService extends Service {
     }
 
     public void saveNote(@NonNull final INote note, final NotesRepositoryObserver observer) {
-        repositoryThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                saveNoteAsync(note, observer);
-            }
-        });
+        repositoryThreadPool.execute(() -> saveNoteAsync(note, observer));
     }
 
     private void deleteNotesAsync(@NonNull Set<Integer> nids, NotesRepositoryObserver observer) {
@@ -97,12 +87,7 @@ public class NotesRepositoryService extends Service {
     }
 
     public void deleteNotes(@NonNull final Set<Integer> nids, final NotesRepositoryObserver observer) {
-        repositoryThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                deleteNotesAsync(nids, observer);
-            }
-        });
+        repositoryThreadPool.execute(() -> deleteNotesAsync(nids, observer));
     }
 
     private void getNoteAsync(int nid, NotesRepositoryObserver observer) {
@@ -112,12 +97,7 @@ public class NotesRepositoryService extends Service {
     }
 
     public void getNote(final int nid, final NotesRepositoryObserver observer) {
-        repositoryThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                getNoteAsync(nid, observer);
-            }
-        });
+        repositoryThreadPool.execute(() -> getNoteAsync(nid, observer));
     }
 
     private void getNotesAsync(@NonNull String query, NotesRepositoryObserver observer) {
@@ -127,11 +107,6 @@ public class NotesRepositoryService extends Service {
     }
 
     public void getNotes(@NonNull final String query, final NotesRepositoryObserver observer) {
-        repositoryThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                getNotesAsync(query, observer);
-            }
-        });
+        repositoryThreadPool.execute(() -> getNotesAsync(query, observer));
     }
 }

@@ -60,12 +60,9 @@ public class NotesRepository
     @Override
     public void onGetNotes(final List<? extends INote> notes) {
         if (observer != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (observer != null) {
-                        observer.onGetNotes(notes);
-                    }
+            handler.post(() -> {
+                if (observer != null) {
+                    observer.onGetNotes(notes);
                 }
             });
         }
@@ -74,12 +71,9 @@ public class NotesRepository
     @Override
     public void onFindNotesResult(final List<? extends ISearchNote> notes) {
         if (observer != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (observer != null) {
-                        observer.onFindNotesResult(notes);
-                    }
+            handler.post(() -> {
+                if (observer != null) {
+                    observer.onFindNotesResult(notes);
                 }
             });
         }
@@ -88,12 +82,9 @@ public class NotesRepository
     @Override
     public void onGetNote(final INote note) {
         if (observer != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (observer != null) {
-                        observer.onGetNote(note);
-                    }
+            handler.post(() -> {
+                if (observer != null) {
+                    observer.onGetNote(note);
                 }
             });
         }
@@ -102,12 +93,9 @@ public class NotesRepository
     @Override
     public void onSaveNoteResult(final long result) {
         if (observer != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (observer != null) {
-                        observer.onSaveNoteResult(result);
-                    }
+            handler.post(() -> {
+                if (observer != null) {
+                    observer.onSaveNoteResult(result);
                 }
             });
         }
@@ -116,12 +104,9 @@ public class NotesRepository
     @Override
     public void onDeleteFinish() {
         if (observer != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (observer != null) {
-                        observer.onDeleteFinish();
-                    }
+            handler.post(() -> {
+                if (observer != null) {
+                    observer.onDeleteFinish();
                 }
             });
         }

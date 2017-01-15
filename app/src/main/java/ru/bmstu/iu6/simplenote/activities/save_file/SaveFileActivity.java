@@ -71,39 +71,27 @@ public class SaveFileActivity
         ActionBar bar = getSupportActionBar();
         if (bar != null)
             bar.setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onBackPressed();
-            }
-        });
+        toolbar.setNavigationOnClickListener(view -> onBackPressed());
 
         fileName = (EditText) findViewById(R.id.edit_file_name);
-        fileName.setFilters(new InputFilter[]{new InputFilter() {
-            @Override
-            public CharSequence filter(CharSequence source, int start, int end,
-                                       Spanned dest, int dstart, int dend) {
-                String currentContent = dest.toString();
-                String result = currentContent.substring(0, dstart) +
-                        source.subSequence(start, end) + currentContent.substring(dend);
+        fileName.setFilters(new InputFilter[]{(source, start, end, dest, dstart, dend) -> {
+            String currentContent = dest.toString();
+            String result = currentContent.substring(0, dstart) +
+                    source.subSequence(start, end) + currentContent.substring(dend);
 
-                final int MAX_FILENAME_LENGTH = 20;
+            final int MAX_FILENAME_LENGTH = 20;
 
-                final String fileNameRegex = "^\\w[\\w,\\s]*\\.?[\\w]*[\\s]*";
-                Pattern p = Pattern.compile(fileNameRegex);
-                Matcher m = p.matcher(result);
-                return ((m.matches() && result.length() <= MAX_FILENAME_LENGTH)
-                        || result.length() == 0) ? null : "";
-            }
+            final String fileNameRegex = "^\\w[\\w,\\s]*\\.?[\\w]*[\\s]*";
+            Pattern p = Pattern.compile(fileNameRegex);
+            Matcher m = p.matcher(result);
+            return ((m.matches() && result.length() <= MAX_FILENAME_LENGTH)
+                    || result.length() == 0) ? null : "";
         }});
 
         saveFile = (ImageButton) findViewById(R.id.button_save_file);
-        saveFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                NotesDataSource source = NotesDAO.getInstance(getApplicationContext());
-                presenter.saveFile(fileName.getText().toString(), source);
-            }
+        saveFile.setOnClickListener(view -> {
+            NotesDataSource source = NotesDAO.getInstance(getApplicationContext());
+            presenter.saveFile(fileName.getText().toString(), source);
         });
 
         RecyclerView filesRecycler = (RecyclerView) findViewById(R.id.recycler_files);

@@ -68,21 +68,15 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> 
             dateTime = (TextView) itemView.findViewById(R.id.text_datetime);
             header = (TextView) itemView.findViewById(R.id.text_note_heading);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (onItemClickListener != null)
-                        onItemClickListener.onClick(position);
-                }
+            itemView.setOnClickListener(view -> {
+                if (onItemClickListener != null)
+                    onItemClickListener.onClick(position);
             });
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    if (onItemClickListener != null)
-                        onItemClickListener.onLongClick(position);
-                    return false;
-                }
+            itemView.setOnLongClickListener(view -> {
+                if (onItemClickListener != null)
+                    onItemClickListener.onLongClick(position);
+                return false;
             });
         }
 

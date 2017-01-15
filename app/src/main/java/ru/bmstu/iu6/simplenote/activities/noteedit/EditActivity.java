@@ -136,32 +136,19 @@ public class EditActivity extends AppCompatActivity {
             appBar = (AppBarLayout) findViewById(R.id.app_bar);
 
             noteEdit.setFilters(new InputFilter[] {
-                    new InputFilter() {
-                        @Override
-                        public CharSequence filter(CharSequence charSequence, int i, int i1, Spanned spanned, int i2, int i3) {
-                            return inEditMode ? null : "";
-                        }
-                    }
+                    (charSequence, i, i1, spanned, i2, i3) -> inEditMode ? null : ""
             });
-            noteEdit.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (inEditMode) {
-                        InputMethodManager imm = (InputMethodManager)
-                                EditActivity.this.getSystemService(Service.INPUT_METHOD_SERVICE);
-                        imm.showSoftInput(view, 0);
-                    }
+            noteEdit.setOnClickListener(view1 -> {
+                if (inEditMode) {
+                    InputMethodManager imm = (InputMethodManager)
+                            EditActivity.this.getSystemService(Service.INPUT_METHOD_SERVICE);
+                    imm.showSoftInput(view1, 0);
                 }
             });
 
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onBackPressed();
-                }
-            });
+            toolbar.setNavigationOnClickListener(view12 -> onBackPressed());
 
             Intent intent = getIntent();
             nid = intent.hasExtra(EXTRA_NID) ? intent.getIntExtra(EXTRA_NID, -1) : null;
