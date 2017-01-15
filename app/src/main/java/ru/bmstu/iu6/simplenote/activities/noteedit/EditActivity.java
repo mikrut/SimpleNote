@@ -29,8 +29,10 @@ import android.widget.Toast;
 
 import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.save_file.SaveFileActivity;
+import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
-import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
+import ru.bmstu.iu6.simplenote.threading.BaseSchedulerProvider;
+import ru.bmstu.iu6.simplenote.threading.SchedulerProvider;
 
 public class EditActivity extends AppCompatActivity {
     public static final String EXTRA_EDITABLE =
@@ -48,51 +50,29 @@ public class EditActivity extends AppCompatActivity {
     private Integer nid;
     private boolean editable;
 
-    private boolean bound = false;
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            NotesRepository repository = (NotesRepository) iBinder;
-            presenter = new EditPresenter(view, new Handler(Looper.getMainLooper()),
-                    repository, nid, editable);
-            presenter.start();
-            bound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            bound = false;
-            presenter.notifyServiceDisconnected();
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
 
         view.onCreate(savedInstanceState);
+
+        NotesDAO localSource = NotesDAO.getInstance(getApplicationContext());
+        NotesRepository repository = NotesRepository.getInstance(localSource);
+        BaseSchedulerProvider schedulerProvider = SchedulerProvider.getInstance();
+        presenter = new EditPresenter(view, schedulerProvider,
+                repository, nid, editable);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, NotesRepositoryService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (bound) {
-            unbindService(mConnection);
-            bound = false;
-        }
+        presenter.start();
     }
 
     @Override
     protected void onPause() {
-        presenter.onFinish();
+        presenter.unsubscribe();
         super.onPause();
     }
 

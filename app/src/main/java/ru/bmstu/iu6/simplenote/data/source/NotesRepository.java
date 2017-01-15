@@ -3,112 +3,66 @@ package ru.bmstu.iu6.simplenote.data.source;
 import android.os.Binder;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.View;
 
 import java.util.List;
 import java.util.Set;
 
+import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.models.INote;
 import ru.bmstu.iu6.simplenote.models.ISearchNote;
+import rx.Observable;
 
 /**
  * Created by Михаил on 27.12.2016.
  */
 
-public class NotesRepository
-        extends Binder
-        implements NotesRepositoryService.NotesRepositoryObserver {
-    private final NotesRepositoryService service;
-    private NotesRepositoryService.NotesRepositoryObserver observer;
-    private Handler handler;
+public class NotesRepository implements NotesDataSource {
+    @NonNull
+    private final NotesDataSource localSource;
+    @Nullable
+    private static NotesRepository INSTANCE = null;
 
     // TODO: caching stuff
-    public NotesRepository(NotesRepositoryService service) {
-        this.service = service;
+    private NotesRepository(@NonNull NotesDataSource localSource) {
+        this.localSource = localSource;
     }
 
-    public void setContentObserver(NotesRepositoryService.NotesRepositoryObserver observer, Handler handler) {
-        this.observer = observer;
-        this.handler = handler;
-    }
-
-    public void removeContentObserver() {
-        this.observer = null;
-        this.handler = null;
-    }
-
-    public void getNotes() {
-        service.getNotes(this);
-    }
-
-    public void saveNote(@NonNull INote note) {
-        service.saveNote(note, this);
-    }
-
-    public void deleteNotes(@NonNull Set<Integer> nids) {
-        service.deleteNotes(nids, this);
-    }
-
-    public void getNote(int nid) {
-        service.getNote(nid, this);
-    }
-
-    public void getNotes(@NonNull String query) {
-        service.getNotes(query, this);
-    }
-
-    @Override
-    public void onGetNotes(final List<? extends INote> notes) {
-        if (observer != null) {
-            handler.post(() -> {
-                if (observer != null) {
-                    observer.onGetNotes(notes);
-                }
-            });
+    public static NotesRepository getInstance(@NonNull NotesDataSource localSource) {
+        if (INSTANCE == null) {
+            INSTANCE = new NotesRepository(localSource);
         }
+        return INSTANCE;
     }
 
+    @NonNull
     @Override
-    public void onFindNotesResult(final List<? extends ISearchNote> notes) {
-        if (observer != null) {
-            handler.post(() -> {
-                if (observer != null) {
-                    observer.onFindNotesResult(notes);
-                }
-            });
-        }
+    public Observable<List<? extends INote>> getNotes() {
+        return localSource.getNotes();
     }
 
+    @NonNull
     @Override
-    public void onGetNote(final INote note) {
-        if (observer != null) {
-            handler.post(() -> {
-                if (observer != null) {
-                    observer.onGetNote(note);
-                }
-            });
-        }
+    public Observable<Long> saveNote(@NonNull INote note) {
+        return localSource.saveNote(note);
     }
 
+    @NonNull
     @Override
-    public void onSaveNoteResult(final long result) {
-        if (observer != null) {
-            handler.post(() -> {
-                if (observer != null) {
-                    observer.onSaveNoteResult(result);
-                }
-            });
-        }
+    public Observable<Void> deleteNotes(@NonNull Set<Integer> nids) {
+        return localSource.deleteNotes(nids);
     }
 
+    @NonNull
     @Override
-    public void onDeleteFinish() {
-        if (observer != null) {
-            handler.post(() -> {
-                if (observer != null) {
-                    observer.onDeleteFinish();
-                }
-            });
-        }
+    public Observable<INote> getNote(int nid) {
+        return localSource.getNote(nid);
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<? extends ISearchNote>> getNotes(@NonNull String query) {
+        return localSource.getNotes(query);
     }
 }

@@ -9,6 +9,7 @@ import java.util.Set;
 import ru.bmstu.iu6.simplenote.models.INote;
 import ru.bmstu.iu6.simplenote.models.ISearchNote;
 import ru.bmstu.iu6.simplenote.models.Note;
+import rx.Observable;
 
 /**
  * Created by Михаил on 27.12.2016.
@@ -16,17 +17,19 @@ import ru.bmstu.iu6.simplenote.models.Note;
 
 public interface NotesDataSource {
 
-    @Nullable
-    List<? extends INote> getNotes();
-
-    long saveNote(@NonNull INote note);
-
-    void deleteNotes(@NonNull Set<Integer> nids);
-
-    @Nullable
-    INote getNote(int nid);
+    @NonNull
+    Observable<List<? extends INote>> getNotes();
 
     @NonNull
-    List<? extends ISearchNote> getNotes(@NonNull String query);
+    Observable<Long> saveNote(@NonNull INote note);
+
+    @NonNull
+    Observable<Void> deleteNotes(@NonNull Set<Integer> nids);
+
+    @NonNull
+    Observable<INote> getNote(int nid);
+
+    @NonNull
+    Observable<List<? extends ISearchNote>> getNotes(@NonNull String query);
 
 }

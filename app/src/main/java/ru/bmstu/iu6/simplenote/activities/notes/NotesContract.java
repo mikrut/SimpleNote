@@ -41,5 +41,7 @@ interface NotesContract {
         void openNoteDetails(int position);
 
         void createNewNote();
+
+        void unsubscribe();
     }
 }

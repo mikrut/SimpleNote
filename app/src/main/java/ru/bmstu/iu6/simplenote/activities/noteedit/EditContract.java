@@ -39,7 +39,7 @@ interface EditContract {
 
         void saveAsTxt();
 
-        void notifyServiceDisconnected();
+        void unsubscribe();
 
     }
 }

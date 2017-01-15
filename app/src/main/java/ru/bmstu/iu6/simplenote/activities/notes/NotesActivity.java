@@ -33,10 +33,12 @@ import java.util.Set;
 import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.adapters.IOnItemClickListener;
 import ru.bmstu.iu6.simplenote.activities.noteedit.EditActivity;
+import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
+import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
 import ru.bmstu.iu6.simplenote.models.DecoratedNote;
 import ru.bmstu.iu6.simplenote.activities.adapters.NotesAdapter;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
-import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
+import ru.bmstu.iu6.simplenote.threading.SchedulerProvider;
 
 public class NotesActivity
         extends AppCompatActivity {
@@ -46,49 +48,27 @@ public class NotesActivity
     private NotesView view = new NotesView();
     private NotePresenter presenter;
 
-    private Set<Integer> notes;
-
-    private boolean bound = false;
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            NotesRepository repository = (NotesRepository) iBinder;
-            presenter = new NotePresenter(view, new Handler(Looper.getMainLooper()), repository);
-            presenter.start();
-            if (notes != null) {
-                presenter.restoreSelected(notes);
-                notes = null;
-            }
-            bound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            bound = false;
-            presenter.notifyServiceDisconnected();
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         view.onCreate(savedInstanceState);
+
+        // FIXME: use dependency injection
+        NotesDataSource localSource = NotesDAO.getInstance(getApplicationContext());
+        NotesRepository notesRepository = NotesRepository.getInstance(localSource);
+        presenter = new NotePresenter(view, SchedulerProvider.getInstance(), notesRepository);
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        Intent intent = new Intent(this, NotesRepositoryService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    protected void onResume() {
+        super.onResume();
+        view.onResume();
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        if (bound) {
-            unbindService(mConnection);
-            bound = false;
-        }
+    protected void onPause() {
+        super.onPause();
+        view.onPause();
     }
 
     @Override
@@ -109,7 +89,11 @@ public class NotesActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        notes = (Set<Integer>) savedInstanceState.getSerializable(SAVED_SELECTED);
+        Set<Integer> notes = (Set<Integer>) savedInstanceState.getSerializable(SAVED_SELECTED);
+
+        if (notes != null) {
+            presenter.restoreSelected(notes);
+        }
     }
 
     @Override
@@ -152,6 +136,14 @@ public class NotesActivity
             notesRecycler.setAdapter(adapter);
 
             emptyPlaceholder = (TextView) findViewById(R.id.text_empty_placeholder);
+        }
+
+        public void onResume() {
+            presenter.start();
+        }
+
+        public void onPause() {
+            presenter.unsubscribe();
         }
 
         public boolean onCreateOptionsMenu(Menu menu) {

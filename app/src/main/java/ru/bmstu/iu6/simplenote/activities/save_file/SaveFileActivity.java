@@ -35,7 +35,6 @@ import ru.bmstu.iu6.simplenote.activities.adapters.IOnItemClickListener;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
-import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
 
 public class SaveFileActivity
         extends AppCompatActivity

@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,12 +18,15 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
 import ru.bmstu.iu6.simplenote.models.INote;
 import ru.bmstu.iu6.simplenote.models.ISearchNote;
 import ru.bmstu.iu6.simplenote.models.Note;
 import ru.bmstu.iu6.simplenote.models.SearchNote;
+import rx.Observable;
+import rx.Subscriber;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
 import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
@@ -32,7 +36,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
  */
 
 public class NotesDAO implements NotesDataSource {
-    private NotesDBOpenHelper dbHelper;
+    private SQLiteOpenHelper dbHelper;
     private SQLiteDatabase database;
 
     private static NotesDAO INSTANCE;
@@ -54,24 +58,30 @@ public class NotesDAO implements NotesDataSource {
         return INSTANCE;
     }
 
-    public long saveNote(@NonNull INote note) {
-        // TODO: consider using transaction
+    @NonNull
+    @Override
+    public Observable<Long> saveNote(@NonNull INote note) {
+        return Observable.create(subscriber -> {
+            // TODO: consider using transaction
 
-        ContentValues values = getContentValues(note);
-        long res = database.insertWithOnConflict(
-                NotesContract.NotesEntry.TABLE_NAME,
-                null,
-                values,
-                SQLiteDatabase.CONFLICT_REPLACE
-        );
+            ContentValues values = getContentValues(note);
+            long res = database.insertWithOnConflict(
+                    NotesContract.NotesEntry.TABLE_NAME,
+                    null,
+                    values,
+                    SQLiteDatabase.CONFLICT_REPLACE
+            );
 
-        ContentValues ftsValues = new ContentValues();
-        ftsValues.put(NotesContract.NotesEntry.COLUMN_NAME_TEXT, escapeHtml4(note.getText()));
-        ftsValues.put("docid", res);
-        database.insertWithOnConflict("fts_" + NotesContract.NotesEntry.TABLE_NAME,
-                null, ftsValues, SQLiteDatabase.CONFLICT_REPLACE);
+            ContentValues ftsValues = new ContentValues();
+            ftsValues.put(NotesContract.NotesEntry.COLUMN_NAME_TEXT, escapeHtml4(note.getText()));
+            ftsValues.put("docid", res);
+            database.insertWithOnConflict("fts_" + NotesContract.NotesEntry.TABLE_NAME, null,
+                    ftsValues,
+                    SQLiteDatabase.CONFLICT_REPLACE);
 
-        return res;
+            subscriber.onNext(res);
+            subscriber.onCompleted();
+        });
     }
 
     private static String selectionForProjection(String table, String[] projection) {
@@ -85,98 +95,117 @@ public class NotesDAO implements NotesDataSource {
     }
 
     @NonNull
-    public List<? extends ISearchNote> getNotes(@NonNull String queryString) {
-        final String[] selectionArgs = { queryString };
-        final String[] ftsQuasiProjection = {"docid", "snippet"};
-        // TODO: probably should consider this: { queryString + "*", "%" + queryString + "%" }
+    @Override
+    public Observable<List<? extends ISearchNote>> getNotes(@NonNull String queryString) {
+        return Observable.create(subscriber -> {
 
-        final String selectionNotes = selectionForProjection(NotesContract.NotesEntry.TABLE_NAME,
-                NotesContract.NOTE_PROJECTION);
-        final String selectionFts = selectionForProjection("fts", ftsQuasiProjection);
+            final String[] selectionArgs = { queryString };
+            final String[] ftsQuasiProjection = {"docid", "snippet"};
+            // TODO: probably should consider this: { queryString + "*", "%" + queryString + "%" }
 
-        Cursor cursor = database.rawQuery(
-                "SELECT " + selectionNotes + ", " + selectionFts + " FROM " +
-                "(" +
-                    "SELECT docid, snippet(fts_" + NotesContract.NotesEntry.TABLE_NAME + ", \'<b>\', \'</b>\', \'...\', -1, -4) AS snippet " +
-                    "FROM fts_" + NotesContract.NotesEntry.TABLE_NAME +
-                    " WHERE fts_" + NotesContract.NotesEntry.TABLE_NAME + " MATCH ?" +
-                ") AS fts LEFT JOIN " + NotesContract.NotesEntry.TABLE_NAME +
-                " ON " + "fts.docid = " + NotesContract.NotesEntry.TABLE_NAME + "._id", selectionArgs);
+            final String selectionNotes = selectionForProjection(NotesContract.NotesEntry.TABLE_NAME,
+                    NotesContract.NOTE_PROJECTION);
+            final String selectionFts = selectionForProjection("fts", ftsQuasiProjection);
 
-        List<ISearchNote> notes = new ArrayList<>(cursor.getCount());
+            Cursor cursor = database.rawQuery(
+                    "SELECT " + selectionNotes + ", " + selectionFts + " FROM " +
+                            "(" +
+                            "SELECT docid, snippet(fts_" + NotesContract.NotesEntry.TABLE_NAME + ", \'<b>\', \'</b>\', \'...\', -1, -4) AS snippet " +
+                            "FROM fts_" + NotesContract.NotesEntry.TABLE_NAME +
+                            " WHERE fts_" + NotesContract.NotesEntry.TABLE_NAME + " MATCH ?" +
+                            ") AS fts LEFT JOIN " + NotesContract.NotesEntry.TABLE_NAME +
+                            " ON " + "fts.docid = " + NotesContract.NotesEntry.TABLE_NAME + "._id", selectionArgs);
 
-        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            Note note = createNote(cursor);
-            final String snippet = cursor.getString(NotesContract.NOTE_PROJECTION.length + 1);
-            final Spanned snip;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                snip = Html.fromHtml(snippet, Html.FROM_HTML_MODE_LEGACY);
-            } else {
-                snip = Html.fromHtml(snippet);
+            List<ISearchNote> notes = new ArrayList<>(cursor.getCount());
+
+            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+                Note note = createNote(cursor);
+                final String snippet = cursor.getString(NotesContract.NOTE_PROJECTION.length + 1);
+                final Spanned snip;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    snip = Html.fromHtml(snippet, Html.FROM_HTML_MODE_LEGACY);
+                } else {
+                    snip = Html.fromHtml(snippet);
+                }
+                SearchNote searchNote = new SearchNote(note, snip);
+                notes.add(searchNote);
             }
-            SearchNote searchNote = new SearchNote(note, snip);
-            notes.add(searchNote);
-        }
 
-        cursor.close();
-        return notes;
+            cursor.close();
+            subscriber.onNext(notes);
+            subscriber.onCompleted();
+        });
     }
 
     @NonNull
-    public List<? extends INote> getNotes() {
-        final String orderBy = NotesContract.NotesEntry.COLUMN_NAME_DATETIME + " DESC";
+    @Override
+    public Observable<List<? extends INote>> getNotes() {
+        return Observable.create(subscriber -> {
+            final String orderBy = NotesContract.NotesEntry.COLUMN_NAME_DATETIME + " DESC";
 
-        Cursor cursor = database.query(
-                NotesContract.NotesEntry.TABLE_NAME,
-                NotesContract.NOTE_PROJECTION,
-                null, // Return all notes
-                null, // No WHERE - no args
-                null, // No GROUP BY
-                null, // No GROUP BY filter
-                orderBy
-        );
-
-        return cursorToList(cursor);
-    }
-
-    public void deleteNotes(@NonNull Set<Integer> nids) {
-        final String where = NotesContract.NotesEntry.COLUMN_NAME_NID + " = ?";
-        String[] selectionArgs = new String[1];
-
-        for (int nid: nids) {
-            selectionArgs[0] = String.valueOf(nid);
-            database.delete(
+            Cursor cursor = database.query(
                     NotesContract.NotesEntry.TABLE_NAME,
-                    where,
-                    selectionArgs
+                    NotesContract.NOTE_PROJECTION,
+                    null, // Return all notes
+                    null, // No WHERE - no args
+                    null, // No GROUP BY
+                    null, // No GROUP BY filter
+                    orderBy
             );
-        }
+
+            subscriber.onNext(cursorToList(cursor));
+            subscriber.onCompleted();
+        });
     }
 
-    @Nullable
-    public Note getNote(int nid) {
-        final String selection = NotesContract.NotesEntry.COLUMN_NAME_NID + " = ?";
-        String[] selectionArgs = { String.valueOf(nid) };
+    @NonNull
+    @Override
+    public Observable<Void> deleteNotes(@NonNull Set<Integer> nids) {
+        return Observable.create(subscriber -> {
+            final String where = NotesContract.NotesEntry.COLUMN_NAME_NID + " = ?";
+            String[] selectionArgs = new String[1];
 
-        Cursor cursor = database.query(
-                NotesContract.NotesEntry.TABLE_NAME,
-                NotesContract.NOTE_PROJECTION,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                null,
-                "1"
-        );
+            for (int nid: nids) {
+                selectionArgs[0] = String.valueOf(nid);
+                database.delete(
+                        NotesContract.NotesEntry.TABLE_NAME,
+                        where,
+                        selectionArgs
+                );
+            }
 
-        Note note = null;
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            note = createNote(cursor);
-        }
+            subscriber.onCompleted();
+        });
+    }
 
-        cursor.close();
-        return note;
+    @NonNull
+    @Override
+    public Observable<INote> getNote(int nid) {
+        return Observable.create(subscriber -> {
+            final String selection = NotesContract.NotesEntry.COLUMN_NAME_NID + " = ?";
+            String[] selectionArgs = { String.valueOf(nid) };
+
+            Cursor cursor = database.query(
+                    NotesContract.NotesEntry.TABLE_NAME,
+                    NotesContract.NOTE_PROJECTION,
+                    selection,
+                    selectionArgs,
+                    null,
+                    null,
+                    null,
+                    "1"
+            );
+
+            Note note = null;
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                note = createNote(cursor);
+            }
+
+            cursor.close();
+            subscriber.onNext(note);
+            subscriber.onCompleted();
+        });
     }
 
     private static ContentValues getContentValues(INote note) {

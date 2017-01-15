@@ -9,45 +9,56 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
-import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
 import ru.bmstu.iu6.simplenote.models.INote;
 import ru.bmstu.iu6.simplenote.models.ISearchNote;
 import ru.bmstu.iu6.simplenote.models.Note;
+import ru.bmstu.iu6.simplenote.threading.BaseSchedulerProvider;
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
 
 /**
  * Created by Михаил on 27.12.2016.
  */
-class EditPresenter implements EditContract.Presenter, NotesRepositoryService.NotesRepositoryObserver {
-    private EditContract.View view;
-    private NotesRepository repository;
+class EditPresenter implements EditContract.Presenter {
+    @NonNull
+    private final EditContract.View view;
+    @NonNull
+    private final NotesRepository repository;
+    @NonNull
+    private final BaseSchedulerProvider schedulerProvider;
+
+    @NonNull
+    private final CompositeSubscription subscriptions;
+
     private Integer nid;
-
     private boolean editable;
-
     private boolean shouldOpenSaveActivity = false;
 
-    EditPresenter(@NonNull EditContract.View editView, @NonNull Handler handler,
+    EditPresenter(@NonNull EditContract.View editView, @NonNull BaseSchedulerProvider schedulerProvider,
                   @NonNull NotesRepository repository, @Nullable Integer nid,
                   boolean editable) {
         this.repository = repository;
-        repository.setContentObserver(this, handler);
+        this.schedulerProvider = schedulerProvider;
         this.view = editView;
+
         editView.setPresenter(this);
+        this.subscriptions = new CompositeSubscription();
         this.nid = nid;
         this.editable = editable;
         view.setEditMode(editable);
     }
 
     @Override
-    public void notifyServiceDisconnected() {
-        repository.removeContentObserver();
-        repository = null;
-    }
-
-    @Override
     public void start() {
         if (nid != null) {
-            repository.getNote(nid);
+            Subscription subscription = repository.getNote(nid)
+                    .subscribeOn(schedulerProvider.computation())
+                    .observeOn(schedulerProvider.ui())
+                    .subscribe(note -> {
+                if (note != null)
+                    view.initNoteText(note.getText());
+            });
+            subscriptions.add(subscription);
         }
     }
 
@@ -64,7 +75,21 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
         note.setNid(nid);
         if (note.getText().length() > 0 || note.getNid() != null) {
             // TODO: fix NIDs to long (?)
-            repository.saveNote(note);
+            Subscription subscription = repository.saveNote(note)
+                    .subscribeOn(schedulerProvider.computation())
+                    .observeOn(schedulerProvider.ui())
+                    .subscribe(result -> {
+                if (nid == null) {
+                    nid = result != -1 ? result.intValue() : null;
+                    view.showSaveMessage();
+                    view.rememberNid(nid);
+
+                    if (shouldOpenSaveActivity)
+                        view.showSaveActivity();
+                }
+                shouldOpenSaveActivity = false;
+            });
+            subscriptions.add(subscription);
         }
     }
 
@@ -89,41 +114,8 @@ class EditPresenter implements EditContract.Presenter, NotesRepositoryService.No
     }
 
     @Override
-    public void onGetNotes(List<? extends INote> notes) {
-        // Nothing
-    }
-
-    @Override
-    public void onFindNotesResult(List<? extends ISearchNote> notes) {
-        // Nothing
-    }
-
-    @Override
-    public void onGetNote(INote note) {
-        if (note != null)
-            view.initNoteText(note.getText());
-    }
-
-    @Override
-    public void onSaveNoteResult(long result) {
-        if (nid == null) {
-            nid = result != -1 ? (int) result : null;
-            view.showSaveMessage();
-            view.rememberNid(nid);
-
-            if (shouldOpenSaveActivity)
-                view.showSaveActivity();
-        }
-        shouldOpenSaveActivity = false;
-    }
-
-    @Override
-    public void onDeleteFinish() {
-        // nothinig
-        // TODO: consider deletion feature
-    }
-
-    void onFinish() {
+    public void unsubscribe() {
+        subscriptions.unsubscribe();
         if (editable) {
             saveNote();
         }

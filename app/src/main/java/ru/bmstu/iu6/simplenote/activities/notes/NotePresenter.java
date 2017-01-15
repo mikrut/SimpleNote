@@ -1,7 +1,7 @@
 package ru.bmstu.iu6.simplenote.activities.notes;
 
-import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.v4.internal.view.SupportSubMenu;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,20 +10,24 @@ import java.util.TreeSet;
 
 import ru.bmstu.iu6.simplenote.models.DecoratedNote;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
-import ru.bmstu.iu6.simplenote.data.source.NotesRepositoryService;
 import ru.bmstu.iu6.simplenote.models.INote;
-import ru.bmstu.iu6.simplenote.models.ISearchNote;
+import ru.bmstu.iu6.simplenote.threading.BaseSchedulerProvider;
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
 
 /**
  * Created by Михаил on 27.12.2016.
  */
-class NotePresenter
-        implements NotesContract.Presenter,
-        NotesRepositoryService.NotesRepositoryObserver {
-    private NotesContract.View notesView;
+class NotePresenter implements NotesContract.Presenter {
+    @NonNull
+    private final NotesContract.View notesView;
+    @NonNull
+    private final BaseSchedulerProvider schedulerProvider;
+    @NonNull
+    private final NotesRepository repository;
 
-    private NotesRepository repository;
-    static final int LOADER_NOTES = 0;
+    @NonNull
+    private final CompositeSubscription subscriptions;
 
     private int selectedCounter = 0;
     private List<DecoratedNote> notes = new ArrayList<>();
@@ -32,23 +36,48 @@ class NotePresenter
     private Set<Integer> selectedNotes;
 
     public NotePresenter(@NonNull NotesContract.View notesView,
-                         @NonNull Handler handler,
+                         @NonNull BaseSchedulerProvider schedulerProvider,
                          @NonNull NotesRepository repository) {
         this.notesView = notesView;
+        this.schedulerProvider = schedulerProvider;
         this.repository = repository;
-        repository.setContentObserver(this, handler);
+
+        this.subscriptions = new CompositeSubscription();
+
         notesView.setPresenter(this);
     }
 
     @Override
     public void start() {
-        repository.getNotes();
+        Subscription subscription = repository.getNotes()
+                .subscribeOn(schedulerProvider.computation())
+                .observeOn(schedulerProvider.ui())
+                .subscribe(this::onGetNotes);
+        subscriptions.add(subscription);
     }
 
-    public void notifyServiceDisconnected() {
-        repository.removeContentObserver();
-        repository = null;
+    private void onGetNotes(List<? extends INote> data) {
+        notes.clear();
+
+        for (INote note : data) {
+            DecoratedNote decoratedNote = new DecoratedNote(note);
+            if (selectedNotes != null && selectedNotes.contains(decoratedNote.getNid()))
+                decoratedNote.setSelected(true);
+            notes.add(decoratedNote);
+        }
+
+        notesView.showNotes(notes);
+
+        if (selectedNotes != null) {
+            selectedCounter = selectedNotes.size();
+            notesView.showSelectedCount(selectedCounter, null);
+            selectedNotes = null;
+        } else {
+            selectedCounter = 0;
+            notesView.showSelectedCount(selectedCounter, null);
+        }
     }
+
 
     @Override
     public void openNoteDetails(int position) {
@@ -79,7 +108,14 @@ class NotePresenter
     @Override
     public void deleteNotes() {
         final Set<Integer> noteSet = filterSelected(true);
-        repository.deleteNotes(noteSet);
+        Subscription subscription = repository.deleteNotes(noteSet)
+                .subscribeOn(schedulerProvider.computation())
+                .observeOn(schedulerProvider.ui())
+                .subscribe(nothing -> {
+            selectedCounter = 0;
+            notesView.showSelectedCount(selectedCounter, null);
+        });
+        subscriptions.add(subscription);
     }
 
     @Override
@@ -125,61 +161,28 @@ class NotePresenter
     }
 
     @Override
-    public void onGetNotes(List<? extends INote> data) {
-        notes.clear();
-
-        for (INote note : data) {
-            DecoratedNote decoratedNote = new DecoratedNote(note);
-            if (selectedNotes != null && selectedNotes.contains(decoratedNote.getNid()))
-                decoratedNote.setSelected(true);
-            notes.add(decoratedNote);
-        }
-
-        notesView.showNotes(notes);
-
-        if (selectedNotes != null) {
-            selectedCounter = selectedNotes.size();
-            notesView.showSelectedCount(selectedCounter, null);
-            selectedNotes = null;
-        } else {
-            selectedCounter = 0;
-            notesView.showSelectedCount(selectedCounter, null);
-        }
-    }
-
-    @Override
-    public void onGetNote(INote note) {
-
-    }
-
-    @Override
-    public void onSaveNoteResult(long result) {
-
-    }
-
-    @Override
-    public void onDeleteFinish() {
-        selectedCounter = 0;
-        notesView.showSelectedCount(selectedCounter, null);
-    }
-
-    @Override
-    public void onFindNotesResult(List<? extends ISearchNote> searchNotes) {
-        if (inSearchState) {
-            if (selectedNotes != null) {
-                selectedCounter = 0;
-                notesView.showSelectedCount(selectedCounter, null);
-                selectedNotes = null;
-            }
-
-            onGetNotes(searchNotes);
-        }
-    }
-
-    @Override
     public void searchNotes(String searchString) {
         inSearchState = true;
-        repository.getNotes(searchString);
+        Subscription subscription = repository.getNotes(searchString)
+                .subscribeOn(schedulerProvider.computation())
+                .observeOn(schedulerProvider.ui())
+                .subscribe(searchNotes -> {
+            if (inSearchState) {
+                if (selectedNotes != null) {
+                    selectedCounter = 0;
+                    notesView.showSelectedCount(selectedCounter, null);
+                    selectedNotes = null;
+                }
+
+                onGetNotes(searchNotes);
+            }
+        });
+        subscriptions.add(subscription);
+    }
+
+    @Override
+    public void unsubscribe() {
+        subscriptions.clear();
     }
 
     @Override
