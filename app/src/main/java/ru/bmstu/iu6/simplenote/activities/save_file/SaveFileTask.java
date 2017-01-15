@@ -41,7 +41,7 @@ public class SaveFileTask extends AsyncTask<String, Void, Boolean> {
     protected Boolean doInBackground(String... strings) {
         final String nid = strings[0];
         final String filename = strings[1];
-        
+
         INote note = BlockingObservable.from(db.getNote(Integer.valueOf(nid))).firstOrDefault(null);
         if (note == null)
             return false;

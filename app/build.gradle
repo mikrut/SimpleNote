@@ -39,4 +39,8 @@ dependencies {
     compile group: 'io.reactivex', name: 'rxjava', version: '1.2.5'
     /// RxAndroid: https://github.com/ReactiveX/RxAndroid
     compile 'io.reactivex:rxandroid:1.2.1'
+    // LeakCanary: https://github.com/square/leakcanary
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
+    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
 }
