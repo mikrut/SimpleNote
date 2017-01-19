@@ -49,11 +49,7 @@ class NotePresenter implements NotesContract.Presenter {
 
     @Override
     public void start() {
-        Subscription subscription = repository.getNotes()
-                .subscribeOn(schedulerProvider.computation())
-                .observeOn(schedulerProvider.ui())
-                .subscribe(this::onGetNotes);
-        subscriptions.add(subscription);
+        loadNotesFromDB();
     }
 
     private void onGetNotes(List<? extends INote> data) {
@@ -132,10 +128,19 @@ class NotePresenter implements NotesContract.Presenter {
         selectedNotes = selected;
     }
 
+    private void loadNotesFromDB() {
+        Subscription subscription = repository.getNotes()
+                .subscribeOn(schedulerProvider.computation())
+                .observeOn(schedulerProvider.ui())
+                .subscribe(this::onGetNotes);
+        subscriptions.add(subscription);
+    }
+
     @Override
     public void loadNotes(boolean forceUpdate) {
         if (forceUpdate) {
             // TODO: refresh repository (?)
+            loadNotesFromDB();
         } else {
             notesView.showNotes(notes);
         }

@@ -3,22 +3,19 @@ package ru.bmstu.iu6.simplenote.data.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import net.sqlcipher.database.SQLiteDatabase;
+import net.sqlcipher.database.SQLiteOpenHelper;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.Html;
 import android.text.Spanned;
+import android.util.Base64;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
 import ru.bmstu.iu6.simplenote.models.INote;
@@ -26,10 +23,8 @@ import ru.bmstu.iu6.simplenote.models.ISearchNote;
 import ru.bmstu.iu6.simplenote.models.Note;
 import ru.bmstu.iu6.simplenote.models.SearchNote;
 import rx.Observable;
-import rx.Subscriber;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
-import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
 
 /**
  * Created by Михаил on 25.12.2016.
@@ -42,20 +37,39 @@ public class NotesDAO implements NotesDataSource {
     private static NotesDAO INSTANCE;
     private static final Object INSTANCE_SYNCHRONIZER = new Object();
 
-    private NotesDAO(@NonNull Context context) {
+    private NotesDAO(@NonNull Context context, @NonNull String base64Password) {
         dbHelper = new NotesDBOpenHelper(context);
-        database = dbHelper.getWritableDatabase();
+        database = dbHelper.getWritableDatabase(base64Password);
     }
 
+    /**
+     * Uses a default password
+     * @param context
+     * @return
+     */
     public static NotesDAO getInstance(@NonNull Context context) {
+        return getInstance(context, NotesDBOpenHelper.DATABASE_DEFAULT_PASSWORD);
+    }
+
+    public static NotesDAO getInstance(@NonNull Context context, @NonNull String password) {
         if (INSTANCE == null) {
             synchronized (INSTANCE_SYNCHRONIZER) {
                 if (INSTANCE == null) {
-                    INSTANCE = new NotesDAO(context);
+                    String base64Password =
+                            Base64.encodeToString(password.getBytes(), Base64.DEFAULT);
+                    INSTANCE = new NotesDAO(context, base64Password);
                 }
             }
         }
         return INSTANCE;
+    }
+
+    public void changePassword(@NonNull String newPassword) {
+        // use base64 encode to prevent injections
+        final String base64Pass =
+                Base64.encodeToString(newPassword.getBytes(),
+                        Base64.DEFAULT);
+        database.rawExecSQL(String.format("PRAGMA rekey = \"%s\"", base64Pass));
     }
 
     @NonNull
@@ -154,6 +168,7 @@ public class NotesDAO implements NotesDataSource {
             );
 
             subscriber.onNext(cursorToList(cursor));
+            cursor.close();
             subscriber.onCompleted();
         });
     }

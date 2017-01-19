@@ -4,6 +4,8 @@ import android.app.Application;
 
 import com.squareup.leakcanary.LeakCanary;
 
+import net.sqlcipher.database.SQLiteDatabase;
+
 /**
  * Created by Михаил on 15.01.2017.
  */
@@ -18,6 +20,6 @@ public class MyApplication extends Application {
             return;
         }
         LeakCanary.install(this);
-        // Normal app init code...
+        SQLiteDatabase.loadLibs(this);
     }
 }

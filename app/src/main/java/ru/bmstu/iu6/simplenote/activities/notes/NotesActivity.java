@@ -171,7 +171,7 @@ public class NotesActivity
                 @Override
                 public boolean onQueryTextChange(String newText) {
                     if (newText.equals("")) {
-                        presenter.loadNotes(false);
+                        presenter.loadNotes(true);
                     } else {
                         presenter.searchNotes(newText);
                     }

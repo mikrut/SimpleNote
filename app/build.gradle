@@ -43,4 +43,6 @@ dependencies {
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
     testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
+    // SQLCipher: https://github.com/sqlcipher/android-database-sqlcipher
+    compile 'net.zetetic:android-database-sqlcipher:3.5.4'
 }
