@@ -17,4 +17,14 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="AppTheme.NoActionBar.Login">
+
+        <item name="android:colorBackground">@color/colorPrimary</item>
+        <item name="android:textColorPrimary">@color/textColorLight</item>
+        <item name="android:textColorPrimaryInverse">@color/textColorLight</item>
+        <item name="colorAccent">#607D8B</item>
+        <item name="android:textColorSecondary">@color/textColorDarkSecondary</item>
+        <item name="android:textColorSecondaryInverse">@color/textColorLightSecondary</item>
+    </style>
+
 </resources>

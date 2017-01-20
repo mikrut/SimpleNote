@@ -32,6 +32,7 @@ import java.util.Set;
 
 import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.adapters.IOnItemClickListener;
+import ru.bmstu.iu6.simplenote.activities.login.LoginActivity;
 import ru.bmstu.iu6.simplenote.activities.noteedit.EditActivity;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
@@ -51,12 +52,20 @@ public class NotesActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // TODO: remove
+        // begin
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+        // end
+        /*
         view.onCreate(savedInstanceState);
 
         // FIXME: use dependency injection
         NotesDataSource localSource = NotesDAO.getInstance(getApplicationContext());
         NotesRepository notesRepository = NotesRepository.getInstance(localSource);
         presenter = new NotePresenter(view, SchedulerProvider.getInstance(), notesRepository);
+        */
     }
 
     @Override

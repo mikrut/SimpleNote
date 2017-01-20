@@ -31,7 +31,10 @@
             android:name=".activities.save_file.SaveFileActivity"
             android:label="Save file"
             android:theme="@style/AppTheme.NoActionBar" />
-
+        <activity
+            android:name=".activities.login.LoginActivity"
+            android:label="Login"
+            android:theme="@style/AppTheme.NoActionBar.Login" />
     </application>
 
 </manifest>

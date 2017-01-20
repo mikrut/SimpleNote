@@ -64,6 +64,22 @@ public class NotesDAO implements NotesDataSource {
         return INSTANCE;
     }
 
+    public static boolean checkPassword(@NonNull Context context, @NonNull String password) {
+        boolean valid = true;
+        NotesDBOpenHelper dbOpenHelper = new NotesDBOpenHelper(context);
+        try {
+            String base64Password =
+                    Base64.encodeToString(password.getBytes(), Base64.DEFAULT);
+            SQLiteDatabase db = dbOpenHelper.getReadableDatabase(base64Password);
+            db.close();
+        } catch (Exception e) {
+            valid = false;
+        } finally {
+            dbOpenHelper.close();
+        }
+        return valid;
+    }
+
     public void changePassword(@NonNull String newPassword) {
         // use base64 encode to prevent injections
         final String base64Pass =

@@ -45,4 +45,6 @@ dependencies {
     testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
     // SQLCipher: https://github.com/sqlcipher/android-database-sqlcipher
     compile 'net.zetetic:android-database-sqlcipher:3.5.4'
+    // CircleImageView: https://github.com/hdodenhof/CircleImageView
+    compile 'de.hdodenhof:circleimageview:2.1.0'
 }

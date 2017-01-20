@@ -10,7 +10,7 @@ import net.sqlcipher.database.SQLiteOpenHelper;
  * Created by Михаил on 25.12.2016.
  */
 
-class NotesDBOpenHelper extends SQLiteOpenHelper {
+public class NotesDBOpenHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "Notes.db";
     // Password is used by default if user decides not to encrypt his data.
