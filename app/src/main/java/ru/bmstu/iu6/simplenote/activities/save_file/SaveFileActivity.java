@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.adapters.FilesAdapter;
 import ru.bmstu.iu6.simplenote.activities.adapters.IOnItemClickListener;
+import ru.bmstu.iu6.simplenote.activities.login.LoginActivity;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
@@ -53,9 +54,20 @@ public class SaveFileActivity
     private SaveFileContract.Presenter presenter;
     private int nid;
 
+    private NotesDataSource source;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // TODO: use dependency injection
+        source = NotesDAO.getInstance(getApplicationContext());
+        if (source == null) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_save_file);
 
         Intent incomingIntent = getIntent();
@@ -88,10 +100,7 @@ public class SaveFileActivity
         }});
 
         saveFile = (ImageButton) findViewById(R.id.button_save_file);
-        saveFile.setOnClickListener(view -> {
-            NotesDataSource source = NotesDAO.getInstance(getApplicationContext());
-            presenter.saveFile(fileName.getText().toString(), source);
-        });
+        saveFile.setOnClickListener(view -> presenter.saveFile(fileName.getText().toString(), source));
 
         RecyclerView filesRecycler = (RecyclerView) findViewById(R.id.recycler_files);
         filesRecycler.setLayoutManager(new LinearLayoutManager(this));

@@ -20,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -38,6 +39,7 @@ import javax.crypto.Cipher;
 import de.hdodenhof.circleimageview.CircleImageView;
 import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.notes.NotesActivity;
+import ru.bmstu.iu6.simplenote.activities.security_utils.PasswordEncryptor;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
@@ -73,7 +75,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         } catch (NoSuchAlgorithmException | NoSuchProviderException | KeyStoreException ignore) {
             ignore.printStackTrace();
         }
-        new LoginPresenter(this, repository, keyStore, keyPairGenerator);
+        new LoginPresenter(this, repository, new PasswordEncryptor(keyStore, keyPairGenerator));
 
         loginButton.setOnClickListener(view -> {
             presenter.login(passwordEdit.getText().toString());
@@ -121,6 +123,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             super.onAuthenticationError(errMsgId, errString);
             // TODO: handle this awful situation
             // hope it won't ever happen
+            Log.e(LoginActivity.class.getSimpleName(), "Authentication Error:\n" + errString);
         }
 
         @Override
@@ -189,6 +192,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     public void openMainActivity() {
         Intent intent = new Intent(this, NotesActivity.class);
         startActivity(intent);
+        finish();
     }
 
     @Override
@@ -203,7 +207,13 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public boolean checkPassword(@NonNull String password) {
-        return NotesDAO.checkPassword(getApplicationContext(), password);
+        boolean valid = NotesDAO.checkPassword(getApplicationContext(), password);
+        if (valid) {
+            // instantiate DB accessor with provided valid password
+            // for further usage
+            NotesDAO.getInstance(getApplicationContext(), password);
+        }
+        return valid;
     }
 
     @Override

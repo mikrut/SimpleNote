@@ -4,13 +4,9 @@ import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -34,6 +30,7 @@ import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.adapters.IOnItemClickListener;
 import ru.bmstu.iu6.simplenote.activities.login.LoginActivity;
 import ru.bmstu.iu6.simplenote.activities.noteedit.EditActivity;
+import ru.bmstu.iu6.simplenote.activities.settings.SettingsActivity;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
 import ru.bmstu.iu6.simplenote.models.DecoratedNote;
@@ -47,25 +44,24 @@ public class NotesActivity
             NotesActivity.class.getCanonicalName() + ".SAVED_SELECTED";
 
     private NotesView view = new NotesView();
-    private NotePresenter presenter;
+    private NotesPresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // TODO: remove
-        // begin
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
-        finish();
-        // end
-        /*
+
         view.onCreate(savedInstanceState);
 
         // FIXME: use dependency injection
         NotesDataSource localSource = NotesDAO.getInstance(getApplicationContext());
+        if (localSource == null) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         NotesRepository notesRepository = NotesRepository.getInstance(localSource);
-        presenter = new NotePresenter(view, SchedulerProvider.getInstance(), notesRepository);
-        */
+        presenter = new NotesPresenter(view, SchedulerProvider.getInstance(), notesRepository);
     }
 
     @Override
@@ -221,6 +217,10 @@ public class NotesActivity
             int id = item.getItemId();
 
             switch (id) {
+                case R.id.action_settings:
+                    Intent intent = new Intent(NotesActivity.this, SettingsActivity.class);
+                    startActivity(intent);
+                    return true;
                 case R.id.action_clear:
                     presenter.unSelectNotes();
                     return true;
@@ -277,7 +277,7 @@ public class NotesActivity
                     ActivityInfo activityInfo = pm.getActivityInfo(componentName, 0);
                     label = activityInfo.loadLabel(pm).toString();
                 } catch (PackageManager.NameNotFoundException ex) {
-                    Log.e(NotePresenter.class.getSimpleName(), ex.getLocalizedMessage());
+                    Log.e(NotesPresenter.class.getSimpleName(), ex.getLocalizedMessage());
                 }
                 setTitle(label);
                 if (selectedMenuShown)

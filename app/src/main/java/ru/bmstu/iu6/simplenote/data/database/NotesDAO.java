@@ -7,6 +7,7 @@ import net.sqlcipher.database.SQLiteDatabase;
 import net.sqlcipher.database.SQLiteOpenHelper;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Base64;
@@ -44,9 +45,10 @@ public class NotesDAO implements NotesDataSource {
 
     /**
      * Uses a default password
-     * @param context
-     * @return
+     * @param context Android context
+     * @return NotesDAO on success, null on password error
      */
+    @Nullable
     public static NotesDAO getInstance(@NonNull Context context) {
         return getInstance(context, NotesDBOpenHelper.DATABASE_DEFAULT_PASSWORD);
     }
@@ -57,7 +59,11 @@ public class NotesDAO implements NotesDataSource {
                 if (INSTANCE == null) {
                     String base64Password =
                             Base64.encodeToString(password.getBytes(), Base64.DEFAULT);
-                    INSTANCE = new NotesDAO(context, base64Password);
+                    try {
+                        INSTANCE = new NotesDAO(context, base64Password);
+                    } catch (Exception ignore) {
+                        INSTANCE = null;
+                    }
                 }
             }
         }

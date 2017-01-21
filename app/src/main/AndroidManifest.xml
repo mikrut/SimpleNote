@@ -35,6 +35,14 @@
             android:name=".activities.login.LoginActivity"
             android:label="Login"
             android:theme="@style/AppTheme.NoActionBar.Login" />
+        <activity
+            android:name=".activities.settings.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".activities.notes.NotesActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ru.bmstu.iu6.simplenote.activities.notes.NotesActivity" />
+        </activity>
     </application>
 
 </manifest>

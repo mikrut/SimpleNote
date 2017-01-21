@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 
 import ru.bmstu.iu6.simplenote.data.source.NotesDataSource;
-import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
 import ru.bmstu.iu6.simplenote.models.ArbitrarilyNamedFile;
 
 /**

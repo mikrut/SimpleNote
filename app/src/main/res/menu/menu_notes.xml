@@ -4,9 +4,15 @@
     tools:context="ru.bmstu.iu6.simplenote.activities.notes.NotesActivity">
     <item
         android:id="@+id/action_search"
-        android:orderInCategory="100"
+        android:orderInCategory="1"
         android:title="Search"
         android:icon="@android:drawable/ic_menu_search"
         app:showAsAction="collapseActionView|ifRoom"
         app:actionViewClass="android.support.v7.widget.SearchView" />
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="2"
+        android:title="Settings"
+        android:icon="@drawable/ic_settings_white_24dp"
+        app:showAsAction="ifRoom" />
 </menu>

@@ -28,6 +28,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import ru.bmstu.iu6.simplenote.R;
+import ru.bmstu.iu6.simplenote.activities.login.LoginActivity;
 import ru.bmstu.iu6.simplenote.activities.save_file.SaveFileActivity;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.source.NotesRepository;
@@ -58,6 +59,12 @@ public class EditActivity extends AppCompatActivity {
         view.onCreate(savedInstanceState);
 
         NotesDAO localSource = NotesDAO.getInstance(getApplicationContext());
+        if (localSource == null) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         NotesRepository repository = NotesRepository.getInstance(localSource);
         BaseSchedulerProvider schedulerProvider = SchedulerProvider.getInstance();
         presenter = new EditPresenter(view, schedulerProvider,

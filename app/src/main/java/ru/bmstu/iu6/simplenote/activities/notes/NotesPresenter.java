@@ -18,7 +18,7 @@ import rx.subscriptions.CompositeSubscription;
 /**
  * Created by Михаил on 27.12.2016.
  */
-class NotePresenter implements NotesContract.Presenter {
+class NotesPresenter implements NotesContract.Presenter {
     @NonNull
     private final NotesContract.View notesView;
     @NonNull
@@ -35,9 +35,9 @@ class NotePresenter implements NotesContract.Presenter {
 
     private Set<Integer> selectedNotes;
 
-    public NotePresenter(@NonNull NotesContract.View notesView,
-                         @NonNull BaseSchedulerProvider schedulerProvider,
-                         @NonNull NotesRepository repository) {
+    public NotesPresenter(@NonNull NotesContract.View notesView,
+                          @NonNull BaseSchedulerProvider schedulerProvider,
+                          @NonNull NotesRepository repository) {
         this.notesView = notesView;
         this.schedulerProvider = schedulerProvider;
         this.repository = repository;

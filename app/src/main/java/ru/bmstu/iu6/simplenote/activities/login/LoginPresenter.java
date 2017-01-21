@@ -31,6 +31,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
 
+import ru.bmstu.iu6.simplenote.activities.security_utils.PasswordEncryptor;
+import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.database.NotesDBOpenHelper;
 
 /**
@@ -41,89 +43,25 @@ public class LoginPresenter implements LoginContract.Presenter {
     @NonNull
     private final LoginContract.View view;
     @NonNull
-    private Cipher cipher;
-    @NonNull
     private final IEncryptedPasswordRepository repository;
     @NonNull
-    private final KeyStore keyStore;
-    @NonNull
-    private final KeyPairGenerator keyPairGenerator;
-
-    private static final String KEY_ALIAS =
-            LoginPresenter.class.getCanonicalName() + ".KEY_ALIAS";
+    private final PasswordEncryptor encryptor;
 
     public LoginPresenter(@NonNull LoginContract.View view,
                           @NonNull IEncryptedPasswordRepository repository,
-                          @NonNull KeyStore keyStore,
-                          @NonNull KeyPairGenerator keyPairGenerator) {
+                          @NonNull PasswordEncryptor encryptor) {
         this.view = view;
         this.repository = repository;
-        this.keyStore = keyStore;
-        this.keyPairGenerator = keyPairGenerator;
-
-        try {
-            keyStore.load(null);
-        } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
-            e.printStackTrace();
-        }
-        // TODO: check cipher suite
-        try {
-            cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException ignore) {
-            // Exception is not likely to occur, so...
-            //noinspection ConstantConditions
-            cipher = null;
-            ignore.printStackTrace();
-        }
+        this.encryptor = encryptor;
 
         view.setPresenter(this);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private boolean isKeyReady() {
-        try {
-            return keyStore.containsAlias(KEY_ALIAS) || generateNewKey();
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private boolean generateNewKey() {
-        try {
-            KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(KEY_ALIAS,
-                            KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
-            KeyGenParameterSpec spec = builder
-                    .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
-                    .setUserAuthenticationRequired(true)
-                    .build();
-
-            keyPairGenerator.initialize(spec);
-            keyPairGenerator.generateKeyPair();
-            return true;
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     private boolean authWithPassword(@NonNull String password) {
         boolean valid = view.checkPassword(password);
         if(valid) {
-            try {
-                PublicKey key = keyStore.getCertificate(KEY_ALIAS).getPublicKey();
-                PublicKey unrestricted = KeyFactory.getInstance(key.getAlgorithm()).generatePublic(new X509EncodedKeySpec(key.getEncoded()));
-                OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT);
-                cipher.init(Cipher.ENCRYPT_MODE, unrestricted, spec);
-                byte[] bytes = cipher.doFinal(password.getBytes());
-                repository.storeEncryptedPassword(bytes);
-            } catch (KeyStoreException | NoSuchAlgorithmException | InvalidKeyException |
-                    InvalidAlgorithmParameterException | InvalidKeySpecException |
-                    IllegalBlockSizeException | BadPaddingException ignore) {
-                ignore.printStackTrace();
-            }
+            byte[] bytes = encryptor.encrypt(password);
+            repository.storeEncryptedPassword(bytes);
             view.openMainActivity();
         }
         return valid;
@@ -141,14 +79,6 @@ public class LoginPresenter implements LoginContract.Presenter {
         }
     }
 
-    private void deleteInvalidKey() {
-        try {
-            keyStore.deleteEntry(KEY_ALIAS);
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void fingerprintAuth(@NonNull Cipher resultCipher) {
         view.displayFingerprintStatus(LoginContract.STATUS_OK, "Fingerprint recognized");
@@ -161,7 +91,7 @@ public class LoginPresenter implements LoginContract.Presenter {
                 return;
             }
 
-            String password = new String(cipher.doFinal(encryptedPassword));
+            String password = encryptor.decrypt(encryptedPassword, resultCipher);
             if (!authWithPassword(password)) {
                 view.displayFingerprintStatus(LoginContract.STATUS_FAIL,
                         "Invalid password in storage.\n" +
@@ -192,7 +122,7 @@ public class LoginPresenter implements LoginContract.Presenter {
                 // view.hideFingerprintStuff();
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 try {
-                    if (!isKeyReady()) {
+                    if (!encryptor.isKeyReady()) {
                         view.displayFingerprintStatus(LoginContract.STATUS_FAIL,
                                 "Keystore error.\n" +
                                         "Fingerprint auth is unavailable.");
@@ -201,9 +131,7 @@ public class LoginPresenter implements LoginContract.Presenter {
                                 "First time enter PIN manually.\n" +
                                         "Fingerprint auth is unavailable.");
                     } else {
-                        PrivateKey key = (PrivateKey) keyStore.getKey(KEY_ALIAS, null);
-                        cipher.init(Cipher.DECRYPT_MODE, key);
-                        view.executeFingerprintAuth(cipher);
+                        view.executeFingerprintAuth(encryptor.getDecryptCipher());
                     }
                 } catch (InvalidKeyException | UnrecoverableKeyException |
                         KeyStoreException | NoSuchAlgorithmException e) {

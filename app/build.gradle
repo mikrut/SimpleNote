@@ -11,6 +11,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
@@ -29,22 +30,24 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.android.support:design:24.2.1'
-    testCompile 'junit:junit:4.12'
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
     // RxJava: https://github.com/ReactiveX/RxJava
     compile group: 'io.reactivex', name: 'rxjava', version: '1.2.5'
     /// RxAndroid: https://github.com/ReactiveX/RxAndroid
-    compile 'io.reactivex:rxandroid:1.2.1'
     // LeakCanary: https://github.com/square/leakcanary
+    // SQLCipher: https://github.com/sqlcipher/android-database-sqlcipher
+    // CircleImageView: https://github.com/hdodenhof/CircleImageView
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:design:24.2.1'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'net.zetetic:android-database-sqlcipher:3.5.4'
+    compile 'de.hdodenhof:circleimageview:2.1.0'
+    compile 'com.android.support:support-v4:24.2.1'
+    compile 'com.android.support:support-vector-drawable:24.2.1'
+    testCompile 'junit:junit:4.12'
+    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
-    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
-    // SQLCipher: https://github.com/sqlcipher/android-database-sqlcipher
-    compile 'net.zetetic:android-database-sqlcipher:3.5.4'
-    // CircleImageView: https://github.com/hdodenhof/CircleImageView
-    compile 'de.hdodenhof:circleimageview:2.1.0'
 }

@@ -11,8 +11,7 @@ import android.util.Base64;
 
 public class SharedPreferencesEncryptedPasswordRepository implements IEncryptedPasswordRepository {
     private static final String ENCRYPTED_PASSWORD_ALIAS =
-            SharedPreferencesEncryptedPasswordRepository.class.getCanonicalName() +
-                    ".ENCRYPTED_PASSWORD_ALIAS";
+            "security_password";
     private final @NonNull SharedPreferences sharedPreferences;
 
     public SharedPreferencesEncryptedPasswordRepository(@NonNull SharedPreferences sharedPreferences) {
