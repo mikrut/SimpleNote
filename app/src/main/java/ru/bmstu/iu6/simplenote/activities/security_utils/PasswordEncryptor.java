@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
-import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -29,9 +28,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
-
-import ru.bmstu.iu6.simplenote.activities.login.IEncryptedPasswordRepository;
-import ru.bmstu.iu6.simplenote.activities.login.LoginPresenter;
 
 /**
  * Created by Михаил on 21.01.2017.

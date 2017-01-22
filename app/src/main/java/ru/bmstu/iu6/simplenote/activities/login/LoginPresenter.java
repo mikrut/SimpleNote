@@ -1,39 +1,19 @@
 package ru.bmstu.iu6.simplenote.activities.login;
 
-import android.annotation.TargetApi;
 import android.os.Build;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.util.Log;
 
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.MGF1ParameterSpec;
-import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.OAEPParameterSpec;
-import javax.crypto.spec.PSource;
 
+import ru.bmstu.iu6.simplenote.activities.security_utils.IEncryptedPasswordRepository;
 import ru.bmstu.iu6.simplenote.activities.security_utils.PasswordEncryptor;
-import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
-import ru.bmstu.iu6.simplenote.data.database.NotesDBOpenHelper;
 
 /**
  * Created by Михаил on 19.01.2017.
@@ -105,6 +85,11 @@ public class LoginPresenter implements LoginContract.Presenter {
     @Override
     public void handleAuthenticationHelp(int helpMsgId, CharSequence helpString) {
         view.displayFingerprintStatus(LoginContract.STATUS_FAIL, helpString);
+    }
+
+    @Override
+    public void handleAuthenticationError(int errMsgId, CharSequence errString) {
+        view.displayFingerprintStatus(LoginContract.STATUS_FAIL, errString);
     }
 
     @Override

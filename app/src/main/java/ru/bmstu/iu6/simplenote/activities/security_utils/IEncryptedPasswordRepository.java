@@ -1,4 +1,4 @@
-package ru.bmstu.iu6.simplenote.activities.login;
+package ru.bmstu.iu6.simplenote.activities.security_utils;
 
 import android.support.annotation.Nullable;
 

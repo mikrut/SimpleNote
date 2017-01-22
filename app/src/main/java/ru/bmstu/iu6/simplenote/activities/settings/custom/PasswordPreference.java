@@ -15,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
 import ru.bmstu.iu6.simplenote.R;
-import ru.bmstu.iu6.simplenote.activities.login.SharedPreferencesEncryptedPasswordRepository;
+import ru.bmstu.iu6.simplenote.activities.security_utils.SharedPreferencesEncryptedPasswordRepository;
 import ru.bmstu.iu6.simplenote.activities.security_utils.PasswordEncryptor;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 

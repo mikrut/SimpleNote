@@ -47,6 +47,8 @@ public interface LoginContract {
 
         void fingerprintAuth(@NonNull Cipher resultCipher);
 
+        void handleAuthenticationError(int errMsgId, CharSequence errString);
+
         void handleAuthenticationHelp(int helpMsgId, CharSequence helpString);
 
         void handleAuthenticationFailed();

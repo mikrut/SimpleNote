@@ -2,8 +2,6 @@ package ru.bmstu.iu6.simplenote.activities.login;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -21,11 +19,8 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.security.KeyPairGenerator;
@@ -40,6 +35,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.notes.NotesActivity;
 import ru.bmstu.iu6.simplenote.activities.security_utils.PasswordEncryptor;
+import ru.bmstu.iu6.simplenote.activities.security_utils.SharedPreferencesEncryptedPasswordRepository;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
@@ -123,7 +119,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             super.onAuthenticationError(errMsgId, errString);
             // TODO: handle this awful situation
             // hope it won't ever happen
-            Log.e(LoginActivity.class.getSimpleName(), "Authentication Error:\n" + errString);
+            presenter.handleAuthenticationError(errMsgId, errString);
         }
 
         @Override
