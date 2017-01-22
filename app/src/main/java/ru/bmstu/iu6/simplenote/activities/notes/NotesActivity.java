@@ -94,6 +94,7 @@ public class NotesActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        //noinspection unchecked because we're sure about what we save
         Set<Integer> notes = (Set<Integer>) savedInstanceState.getSerializable(SAVED_SELECTED);
 
         if (notes != null) {

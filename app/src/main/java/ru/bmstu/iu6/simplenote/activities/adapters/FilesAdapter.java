@@ -95,6 +95,8 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.ViewHolder> 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 iconDrawable = context.getResources().getDrawable(iconId, context.getTheme());
             } else {
+                // Inside version check
+                //noinspection deprecation
                 iconDrawable = context.getResources().getDrawable(iconId);
             }
             fileIcon.setImageDrawable(iconDrawable);

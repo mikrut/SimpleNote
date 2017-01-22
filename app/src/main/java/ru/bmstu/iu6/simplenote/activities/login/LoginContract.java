@@ -24,9 +24,6 @@ public interface LoginContract {
         void displayPasswordErrorMessage(@NonNull CharSequence errorMessage);
 
         // FIXME: use string resources
-        void displayHelpText(@NonNull CharSequence helpText);
-
-        // FIXME: use string resources
         void displayFingerprintStatus(int status, @NonNull CharSequence message);
 
         void openMainActivity();

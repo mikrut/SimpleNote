@@ -13,14 +13,14 @@ import java.util.Calendar;
 
 public interface INote extends Serializable {
     @Nullable
-    public Integer getNid();
+    Integer getNid();
 
     @NonNull
-    public String getText();
+    String getText();
 
     @NonNull
     CharSequence getDescription();
 
     @NonNull
-    public Calendar getDateTime();
+    Calendar getDateTime();
 }

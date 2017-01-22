@@ -53,6 +53,7 @@ public class NotesDAO implements NotesDataSource {
         return getInstance(context, NotesDBOpenHelper.DATABASE_DEFAULT_PASSWORD);
     }
 
+    @Nullable
     public static NotesDAO getInstance(@NonNull Context context, @NonNull String password) {
         if (INSTANCE == null) {
             synchronized (INSTANCE_SYNCHRONIZER) {
@@ -109,7 +110,7 @@ public class NotesDAO implements NotesDataSource {
             );
 
             ContentValues ftsValues = new ContentValues();
-            ftsValues.put(NotesContract.NotesEntry.COLUMN_NAME_TEXT, escapeHtml4(note.getText()));
+            ftsValues.put(NotesContract.NotesEntry.COLUMN_NAME_TEXT, escapeHtml4(note.getText().toLowerCase()));
             ftsValues.put("docid", res);
             database.insertWithOnConflict("fts_" + NotesContract.NotesEntry.TABLE_NAME, null,
                     ftsValues,
@@ -123,7 +124,7 @@ public class NotesDAO implements NotesDataSource {
     private static String selectionForProjection(String table, String[] projection) {
         StringBuilder queryBuilder = new StringBuilder();
         for (int i = 0; i < projection.length; i++) {
-            queryBuilder.append(table + "." + projection[i]);
+            queryBuilder.append(table).append('.').append(projection[i]);
             if (i != projection.length - 1)
                 queryBuilder.append(", ");
         }
@@ -134,10 +135,11 @@ public class NotesDAO implements NotesDataSource {
     @Override
     public Observable<List<? extends ISearchNote>> getNotes(@NonNull String queryString) {
         return Observable.create(subscriber -> {
+            String query = queryString.toLowerCase();
 
-            final String[] selectionArgs = { queryString };
+            final String[] selectionArgs = { query };
             final String[] ftsQuasiProjection = {"docid", "snippet"};
-            // TODO: probably should consider this: { queryString + "*", "%" + queryString + "%" }
+            // TODO: probably should consider this: { query + "*", "%" + query + "%" }
 
             final String selectionNotes = selectionForProjection(NotesContract.NotesEntry.TABLE_NAME,
                     NotesContract.NOTE_PROJECTION);
@@ -161,6 +163,8 @@ public class NotesDAO implements NotesDataSource {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     snip = Html.fromHtml(snippet, Html.FROM_HTML_MODE_LEGACY);
                 } else {
+                    // Inside version check
+                    //noinspection deprecation
                     snip = Html.fromHtml(snippet);
                 }
                 SearchNote searchNote = new SearchNote(note, snip);

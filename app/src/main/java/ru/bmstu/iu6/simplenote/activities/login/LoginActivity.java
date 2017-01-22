@@ -1,10 +1,13 @@
 package ru.bmstu.iu6.simplenote.activities.login;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.security.keystore.KeyProperties;
@@ -13,7 +16,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
-import android.support.v4.os.CancellationSignal;
+import android.os.CancellationSignal;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -38,6 +41,8 @@ import ru.bmstu.iu6.simplenote.activities.security_utils.PasswordEncryptor;
 import ru.bmstu.iu6.simplenote.activities.security_utils.SharedPreferencesEncryptedPasswordRepository;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 
+import static android.view.View.GONE;
+
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
 
     private LoginContract.Presenter presenter;
@@ -46,6 +51,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     private TextView fingerprintText;
     private EditText passwordEdit;
     private Button loginButton;
+
+    private static final int REQUEST_FINGERPRINT_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,48 +103,74 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                 }
             }
         });
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                checkSelfPermission(Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.USE_FINGERPRINT}, REQUEST_FINGERPRINT_PERMISSION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_FINGERPRINT_PERMISSION) {
+            presenter.start();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        presenter.start();
+        boolean shouldStart = false;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            shouldStart = true;
+        } else if (checkSelfPermission(Manifest.permission.USE_FINGERPRINT) == PackageManager.PERMISSION_GRANTED) {
+            shouldStart = true;
+        }
+        if (shouldStart)
+            presenter.start();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void executeFingerprintAuth(Cipher cipher) {
-        FingerprintManagerCompat.CryptoObject cryptoObject =
-                new FingerprintManagerCompat.CryptoObject(cipher);
-        FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.from(this);
-        fingerprintManager.authenticate(cryptoObject, 0, new CancellationSignal(), authenticationCallback, null);
+        FingerprintManager.CryptoObject cryptoObject =
+                new FingerprintManager.CryptoObject(cipher);
+
+        if (authenticationCallback == null) {
+            authenticationCallback = new FingerprintManager.AuthenticationCallback() {
+                @Override
+                public void onAuthenticationError(int errMsgId, CharSequence errString) {
+                    super.onAuthenticationError(errMsgId, errString);
+                    presenter.handleAuthenticationError(errMsgId, errString);
+                }
+
+                @Override
+                public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
+                    presenter.handleAuthenticationHelp(helpMsgId, helpString);
+                }
+
+                @Override
+                public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+                    Cipher cipher = result.getCryptoObject().getCipher();
+                    presenter.fingerprintAuth(cipher);
+                }
+
+                @Override
+                public void onAuthenticationFailed() {
+                    presenter.handleAuthenticationFailed();
+                }
+            };
+        }
+
+        FingerprintManager fingerprintManager = getSystemService(FingerprintManager.class);
+        if (checkSelfPermission(Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        fingerprintManager.authenticate(cryptoObject, new CancellationSignal(), 0, authenticationCallback, null);
     }
 
-    FingerprintManagerCompat.AuthenticationCallback authenticationCallback = new FingerprintManagerCompat.AuthenticationCallback() {
-        @Override
-        public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            super.onAuthenticationError(errMsgId, errString);
-            // TODO: handle this awful situation
-            // hope it won't ever happen
-            presenter.handleAuthenticationError(errMsgId, errString);
-        }
-
-        @Override
-        public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            presenter.handleAuthenticationHelp(helpMsgId, helpString);
-        }
-
-        @Override
-        public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
-            Cipher cipher = result.getCryptoObject().getCipher();
-            presenter.fingerprintAuth(cipher);
-        }
-
-        @Override
-        public void onAuthenticationFailed() {
-            presenter.handleAuthenticationFailed();
-        }
-    };
+    FingerprintManager.AuthenticationCallback authenticationCallback;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -192,13 +225,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     }
 
     @Override
-    public void displayHelpText(@NonNull CharSequence helpText) {
-        // TODO: display help text
-    }
-
-    @Override
     public void hideFingerprintStuff() {
-        // TODO: hide
+        fingerprintIcon.setVisibility(GONE);
+        fingerprintText.setVisibility(GONE);
     }
 
     @Override

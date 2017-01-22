@@ -158,6 +158,8 @@ public class EditActivity extends AppCompatActivity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 menu.getItem(0).setIcon(getResources().getDrawable(resid, getTheme()));
             } else {
+                // Inside version check
+                //noinspection deprecation
                 menu.getItem(0).setIcon(getResources().getDrawable(resid));
             }
             return true;
