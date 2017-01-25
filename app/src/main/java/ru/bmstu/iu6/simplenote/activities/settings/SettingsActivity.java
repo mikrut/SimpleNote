@@ -4,6 +4,7 @@ package ru.bmstu.iu6.simplenote.activities.settings;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.SwitchPreference;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -23,6 +25,7 @@ import android.support.v4.app.NavUtils;
 
 import ru.bmstu.iu6.simplenote.R;
 import ru.bmstu.iu6.simplenote.activities.settings.custom.PasswordPreference;
+import ru.bmstu.iu6.simplenote.activities.settings.custom.PasswordSwitchPreference;
 import ru.bmstu.iu6.simplenote.data.database.NotesDAO;
 import ru.bmstu.iu6.simplenote.data.database.NotesDBOpenHelper;
 
@@ -61,10 +64,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                 ? listPreference.getEntries()[index]
                                 : null);
 
-            } else if (preference instanceof PasswordPreference) {
+            } else if (preference instanceof PasswordPreference || preference.getKey().equals("security_password_is_set")) {
                 // TODO: use string resources
-                if (stringValue.length() == 0 || NotesDAO.checkPassword(preference.getContext().getApplicationContext(), NotesDBOpenHelper.DATABASE_DEFAULT_PASSWORD)) {
-                    preference.setSummary("None");
+                if (
+                        (preference instanceof PasswordPreference && stringValue.length() == 0) ||
+                        NotesDAO.isPasswordDefault(preference.getContext().getApplicationContext())
+                        ) {
+                    preference.setSummary("Password is not set");
                 } else {
                     preference.setSummary("Password is set");
                 }
@@ -99,12 +105,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         // Set the listener to watch for value changes.
         preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
 
-        // Trigger the listener immediately with the preference's
-        // current value.
-        sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
-                PreferenceManager
-                        .getDefaultSharedPreferences(preference.getContext())
-                        .getString(preference.getKey(), ""));
+
+        SharedPreferences preferences = PreferenceManager
+                .getDefaultSharedPreferences(preference.getContext());
+        if (preference instanceof SwitchPreference) {
+            sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
+                    preferences.getBoolean(preference.getKey(), false));
+        } else {
+            // Trigger the listener immediately with the preference's
+            // current value.
+            sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
+                    preferences.getString(preference.getKey(), ""));
+        }
     }
 
     @Override
@@ -205,6 +217,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // updated to reflect the new value, per the Android Design
             // guidelines.
             bindPreferenceSummaryToValue(findPreference("security_password"));
+            bindPreferenceSummaryToValue(findPreference("security_password_is_set"));
         }
 
         @Override
@@ -216,6 +229,45 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
             return super.onOptionsItemSelected(item);
         }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext())
+                    .registerOnSharedPreferenceChangeListener(listener);
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext())
+                    .unregisterOnSharedPreferenceChangeListener(listener);
+        }
+
+        private SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                boolean password = key.equals("security_password");
+                boolean reset = key.equals("security_password_is_set");
+                if (password || reset) {
+                    Preference passwordPreference = findPreference("security_password");
+                    Preference passwordResetPreference = findPreference("security_password_is_set");
+
+                    if (password) {
+                        bindPreferenceSummaryToValue(passwordPreference);
+                        passwordResetPreference.setEnabled(true);
+                        ((PasswordSwitchPreference) passwordResetPreference).setChecked(true);
+                    } else {
+                        bindPreferenceSummaryToValue(passwordResetPreference);
+                        if (!sharedPreferences.getBoolean(key, true)) {
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.remove("security_password");
+                            editor.apply();
+                        }
+                    }
+                }
+            }
+        };
     }
 
 }

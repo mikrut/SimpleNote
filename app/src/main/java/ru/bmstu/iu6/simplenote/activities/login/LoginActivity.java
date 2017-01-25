@@ -14,6 +14,7 @@ import android.security.keystore.KeyProperties;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.os.CancellationSignal;
@@ -138,29 +139,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
                 new FingerprintManager.CryptoObject(cipher);
 
         if (authenticationCallback == null) {
-            authenticationCallback = new FingerprintManager.AuthenticationCallback() {
-                @Override
-                public void onAuthenticationError(int errMsgId, CharSequence errString) {
-                    super.onAuthenticationError(errMsgId, errString);
-                    presenter.handleAuthenticationError(errMsgId, errString);
-                }
-
-                @Override
-                public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-                    presenter.handleAuthenticationHelp(helpMsgId, helpString);
-                }
-
-                @Override
-                public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-                    Cipher cipher = result.getCryptoObject().getCipher();
-                    presenter.fingerprintAuth(cipher);
-                }
-
-                @Override
-                public void onAuthenticationFailed() {
-                    presenter.handleAuthenticationFailed();
-                }
-            };
+            authenticationCallback = new MyAuthenticationCallback(presenter);
+        } else if (authenticationCallback.unbound()) {
+            authenticationCallback.bind(presenter);
         }
 
         FingerprintManager fingerprintManager = getApplicationContext().getSystemService(FingerprintManager.class);
@@ -170,7 +151,54 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         fingerprintManager.authenticate(cryptoObject, new CancellationSignal(), 0, authenticationCallback, null);
     }
 
-    FingerprintManager.AuthenticationCallback authenticationCallback;
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private static class MyAuthenticationCallback extends FingerprintManager.AuthenticationCallback {
+        private LoginContract.Presenter presenter;
+
+        MyAuthenticationCallback(@Nullable LoginContract.Presenter presenter) {
+            this.presenter = presenter;
+        }
+
+        void unbind() {
+            presenter = null;
+        }
+
+        boolean unbound() {
+            return presenter == null;
+        }
+
+        void bind(@Nullable LoginContract.Presenter presenter) {
+            this.presenter = presenter;
+        }
+
+        @Override
+        public void onAuthenticationError(int errMsgId, CharSequence errString) {
+            super.onAuthenticationError(errMsgId, errString);
+            if (presenter != null)
+                presenter.handleAuthenticationError(errMsgId, errString);
+        }
+
+        @Override
+        public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
+            if (presenter != null)
+                presenter.handleAuthenticationHelp(helpMsgId, helpString);
+        }
+
+        @Override
+        public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+            Cipher cipher = result.getCryptoObject().getCipher();
+            if (presenter != null)
+                presenter.fingerprintAuth(cipher);
+        }
+
+        @Override
+        public void onAuthenticationFailed() {
+            if (presenter != null)
+                presenter.handleAuthenticationFailed();
+        }
+    }
+
+    MyAuthenticationCallback authenticationCallback;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -244,5 +272,13 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public boolean fingerprintHardwareDetected() {
         return FingerprintManagerCompat.from(getApplicationContext()).isHardwareDetected();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            authenticationCallback.unbind();
+        }
     }
 }

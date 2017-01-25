@@ -4,4 +4,8 @@
         android:key="security_password"
         android:summary="Set or reset a password"
         android:title="Password" />
+    <ru.bmstu.iu6.simplenote.activities.settings.custom.PasswordSwitchPreference
+        android:key="security_password_is_set"
+        android:summary="Reset password"
+        android:title="Reset password" />
 </PreferenceScreen>

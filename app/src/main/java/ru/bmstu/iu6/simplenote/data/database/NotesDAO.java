@@ -87,12 +87,20 @@ public class NotesDAO implements NotesDataSource {
         return valid;
     }
 
+    public static boolean isPasswordDefault(@NonNull Context context) {
+        return checkPassword(context, NotesDBOpenHelper.DATABASE_DEFAULT_PASSWORD);
+    }
+
     public void changePassword(@NonNull String newPassword) {
         // use base64 encode to prevent injections
         final String base64Pass =
                 Base64.encodeToString(newPassword.getBytes(),
                         Base64.DEFAULT);
         database.rawExecSQL(String.format("PRAGMA rekey = \"%s\"", base64Pass));
+    }
+
+    public void resetPassword() {
+        changePassword(NotesDBOpenHelper.DATABASE_DEFAULT_PASSWORD);
     }
 
     @NonNull

@@ -4,9 +4,13 @@ import android.content.Context;
 import android.os.Build;
 import android.preference.DialogPreference;
 import android.security.keystore.KeyProperties;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -38,9 +42,29 @@ public class PasswordPreference extends DialogPreference {
 
         editPassword = (EditText) view.findViewById(R.id.edit_password);
         editPasswordConfirm = (EditText) view.findViewById(R.id.edit_password_confirm);
+
+        editPasswordConfirm.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                final String password = editPassword.getText().toString();
+                final String confirmation = editable.toString();
+                if (confirmation.length() == 4 && !confirmation.equals(password)) {
+                    // FIXME: use string resources
+                    editPasswordConfirm.setError("Passwords do not match");
+                }
+            }
+        });
     }
-
-
 
     @Override
     protected void onDialogClosed(boolean positiveResult) {
