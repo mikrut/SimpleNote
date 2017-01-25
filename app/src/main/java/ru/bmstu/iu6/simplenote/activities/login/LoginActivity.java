@@ -163,7 +163,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
             };
         }
 
-        FingerprintManager fingerprintManager = getSystemService(FingerprintManager.class);
+        FingerprintManager fingerprintManager = getApplicationContext().getSystemService(FingerprintManager.class);
         if (checkSelfPermission(Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -243,6 +243,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public boolean fingerprintHardwareDetected() {
-        return FingerprintManagerCompat.from(this).isHardwareDetected();
+        return FingerprintManagerCompat.from(getApplicationContext()).isHardwareDetected();
     }
 }

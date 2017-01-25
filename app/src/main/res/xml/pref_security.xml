@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ru.bmstu.iu6.simplenote.activities.settings.custom.PasswordPreference
+        android:key="security_password"
+        android:summary="Set or reset a password"
+        android:title="Password" />
+</PreferenceScreen>
